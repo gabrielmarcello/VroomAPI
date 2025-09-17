@@ -1,0 +1,6 @@
+@VroomAPI_HostAddress = http://localhost:5189
+
+GET {{VroomAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
