@@ -50,7 +50,7 @@ namespace VroomAPI.Controllers {
         [HttpPut("/{id}")]
         public async Task<IActionResult> UpdateTag([FromRoute] int id, [FromBody] Tag tag) {
             if (id != tag.Id) {
-                return BadRequest(new { error = "ID_MISMATCH", message = "Route ID does not match tag ID" });
+                return BadRequest(new { error = "Os ids não coencidem", message = "O id fornecido não é o mesmo da tag fornecida" });
             }
 
             var result = await _tagService.UpdateTag(tag);

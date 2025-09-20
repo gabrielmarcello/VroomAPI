@@ -9,6 +9,7 @@ namespace VroomAPI.Model {
         public string DescricaoProblema { get; set; } = string.Empty;
         public ModeloMoto ModeloMoto { get; set; }
         public CategoriaProblema CategoriaProblema { get; set; }
-        public Tag Tag { get; set; }
+        public int TagId { get; set; }
+        public Tag? Tag { get; set; }
     }
 }

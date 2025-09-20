@@ -50,7 +50,7 @@ namespace VroomAPI.Controllers {
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateMoto([FromRoute] int id, [FromBody] Moto moto) {
             if (id != moto.Id) {
-                return BadRequest(new { error = "ID_MISMATCH", message = "Route ID does not match moto ID" });
+                return BadRequest(new { error = "Os ids não coencidem", message = "O id fornecido não é o mesmo da moto fornecida" });
             }
 
             var result = await _motoService.UpdateMoto(moto);

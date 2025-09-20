@@ -15,12 +15,24 @@ namespace VroomAPI.Service {
 
         public async Task<Result<Moto>> CreateMoto(Moto moto) {
             try {
+                var existingTag = await _dbContext.tags.FindAsync(moto.TagId);
+                if (existingTag == null) {
+                    return Result<Moto>.Failure(new Error("Tag não encontrada", "A Tag especificada não existe"));
+                }
+
+                moto.Tag = null;
+                
                 _dbContext.motos.Add(moto);
                 await _dbContext.SaveChangesAsync();
+                
+                await _dbContext.Entry(moto)
+                    .Reference(m => m.Tag)
+                    .LoadAsync();
+                
                 return Result<Moto>.Success(moto);
             }
-            catch (Exception ex) {
-                return Result<Moto>.Failure(new Error("Falha ao criar moto", ex.Message));
+            catch (Exception) {
+                return Result<Moto>.Failure(new Error("Falha ao criar moto"));
             }
         }
 
@@ -29,14 +41,14 @@ namespace VroomAPI.Service {
                 var moto = await _dbContext.motos
                     .Include(m => m.Tag)
                     .FirstOrDefaultAsync(m => m.Id == id);
-                
+
                 if (moto == null) {
                     return Result<Moto>.Failure(new Error("Moto não encontrada", $"Com com o {id} não encontrada"));
                 }
                 return Result<Moto>.Success(moto);
             }
-            catch (Exception ex) {
-                return Result<Moto>.Failure(new Error("Falha ao buscar moto", ex.Message));
+            catch (Exception) {
+                return Result<Moto>.Failure(new Error("Falha ao buscar moto"));
             }
         }
 
@@ -47,8 +59,8 @@ namespace VroomAPI.Service {
                     .ToListAsync();
                 return Result<IEnumerable<Moto>>.Success(motos);
             }
-            catch (Exception ex) {
-                return Result<IEnumerable<Moto>>.Failure(new Error("Falha ao buscar todas as motos", ex.Message));
+            catch (Exception) {
+                return Result<IEnumerable<Moto>>.Failure(new Error("Falha ao buscar todas as motos"));
             }
         }
 
@@ -56,7 +68,12 @@ namespace VroomAPI.Service {
             try {
                 var existingMoto = await _dbContext.motos.FindAsync(moto.Id);
                 if (existingMoto == null) {
-                    return Result<Moto>.Failure(new Error("Moto não encontrada", $"Moto com o {moto.Id} não encontrada"));
+                    return Result<Moto>.Failure(new Error("Moto não encontrada", $"Moto com id {moto.Id} não encontrada"));
+                }
+
+                var existingTag = await _dbContext.tags.FindAsync(moto.TagId);
+                if (existingTag == null) {
+                    return Result<Moto>.Failure(new Error("Tag não encontrada", "A Tag especificada não existe"));
                 }
 
                 existingMoto.Placa = moto.Placa;
@@ -64,13 +81,18 @@ namespace VroomAPI.Service {
                 existingMoto.DescricaoProblema = moto.DescricaoProblema;
                 existingMoto.ModeloMoto = moto.ModeloMoto;
                 existingMoto.CategoriaProblema = moto.CategoriaProblema;
-                existingMoto.Tag = moto.Tag;
+                existingMoto.TagId = moto.TagId;
 
                 await _dbContext.SaveChangesAsync();
+                
+                await _dbContext.Entry(existingMoto)
+                    .Reference(m => m.Tag)
+                    .LoadAsync();
+                
                 return Result<Moto>.Success(existingMoto);
             }
-            catch (Exception ex) {
-                return Result<Moto>.Failure(new Error("Falha ao atualizar moto", ex.Message));
+            catch (Exception) {
+                return Result<Moto>.Failure(new Error("Falha ao atualizar moto"));
             }
         }
 
@@ -85,8 +107,8 @@ namespace VroomAPI.Service {
                 await _dbContext.SaveChangesAsync();
                 return Result.Success();
             }
-            catch (Exception ex) {
-                return Result.Failure(new Error("Falha ao deletar moto", ex.Message));
+            catch (Exception) {
+                return Result.Failure(new Error("Falha ao deletar moto"));
             }
         }
     }

@@ -19,8 +19,8 @@ namespace VroomAPI.Service {
                 await _dbContext.SaveChangesAsync();
                 return Result<Tag>.Success(tag);
             }
-            catch (Exception ex) {
-                return Result<Tag>.Failure(new Error("Falha ao criar tag", ex.Message));
+            catch (Exception) {
+                return Result<Tag>.Failure(new Error("Falha ao criar tag"));
             }
         }
 
@@ -32,8 +32,8 @@ namespace VroomAPI.Service {
                 }
                 return Result<Tag>.Success(tag);
             }
-            catch (Exception ex) {
-                return Result<Tag>.Failure(new Error("Falha ao buscar tag", ex.Message));
+            catch (Exception) {
+                return Result<Tag>.Failure(new Error("Falha ao buscar tag"));
             }
         }
 
@@ -42,8 +42,8 @@ namespace VroomAPI.Service {
                 var tags = await _dbContext.tags.ToListAsync();
                 return Result<IEnumerable<Tag>>.Success(tags);
             }
-            catch (Exception ex) {
-                return Result<IEnumerable<Tag>>.Failure(new Error("Falha ao buscar todas as tags", ex.Message));
+            catch (Exception) {
+                return Result<IEnumerable<Tag>>.Failure(new Error("Falha ao buscar todas as tags"));
             }
         }
 
@@ -60,8 +60,8 @@ namespace VroomAPI.Service {
                 await _dbContext.SaveChangesAsync();
                 return Result<Tag>.Success(existingTag);
             }
-            catch (Exception ex) {
-                return Result<Tag>.Failure(new Error("Falha ao atualizar tag", ex.Message));
+            catch (Exception) {
+                return Result<Tag>.Failure(new Error("Falha ao atualizar tag"));
             }
         }
 
@@ -76,8 +76,8 @@ namespace VroomAPI.Service {
                 await _dbContext.SaveChangesAsync();
                 return Result.Success();
             }
-            catch (Exception ex) {
-                return Result.Failure(new Error("Falha ao deletar tag", ex.Message));
+            catch (Exception) {
+                return Result.Failure(new Error("Falha ao deletar tag"));
             }
         }
     }
