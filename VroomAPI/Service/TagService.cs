@@ -28,7 +28,7 @@ namespace VroomAPI.Service {
             try {
                 var tag = await _dbContext.tags.FindAsync(id);
                 if (tag == null) {
-                    return Result<Tag>.Failure(new Error("Tag não encontrada", $"Tag with id {id} not found"));
+                    return Result<Tag>.Failure(new Error("Tag não encontrada"));
                 }
                 return Result<Tag>.Success(tag);
             }
@@ -51,7 +51,7 @@ namespace VroomAPI.Service {
             try {
                 var existingTag = await _dbContext.tags.FindAsync(tag.Id);
                 if (existingTag == null) {
-                    return Result<Tag>.Failure(new Error("Tag não encontrada", $"Tag com o {tag.Id} não encontrada"));
+                    return Result<Tag>.Failure(new Error("Tag não encontrada"));
                 }
 
                 existingTag.Coordenada = tag.Coordenada;
@@ -69,7 +69,7 @@ namespace VroomAPI.Service {
             try {
                 var tag = await _dbContext.tags.FindAsync(id);
                 if (tag == null) {
-                    return Result.Failure(new Error("Tag não encontrada", $"Tag with id {id} not found"));
+                    return Result.Failure(new Error("Tag não encontrada"));
                 }
 
                 _dbContext.tags.Remove(tag);

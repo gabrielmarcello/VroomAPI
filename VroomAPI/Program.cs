@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using VroomAPI.Data;
 using VroomAPI.Interface;
 using VroomAPI.Service;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,11 +14,17 @@ builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IMotoService, MotoService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c => {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "VroomAPI", Description = "v1", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "VroomAPI", 
+        Version = "v1",
+        Description = "Documentação VroomAPI",
+    });
+    
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
 var app = builder.Build();
@@ -25,7 +32,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "VroomAPI v1");
+        c.DocumentTitle = "VroomAPI - Documentação";
+    });
 }
 
 app.UseHttpsRedirection();

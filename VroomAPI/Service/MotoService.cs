@@ -43,7 +43,7 @@ namespace VroomAPI.Service {
                     .FirstOrDefaultAsync(m => m.Id == id);
 
                 if (moto == null) {
-                    return Result<Moto>.Failure(new Error("Moto não encontrada", $"Com com o {id} não encontrada"));
+                    return Result<Moto>.Failure(new Error("Moto não encontrada"));
                 }
                 return Result<Moto>.Success(moto);
             }
@@ -68,7 +68,7 @@ namespace VroomAPI.Service {
             try {
                 var existingMoto = await _dbContext.motos.FindAsync(moto.Id);
                 if (existingMoto == null) {
-                    return Result<Moto>.Failure(new Error("Moto não encontrada", $"Moto com id {moto.Id} não encontrada"));
+                    return Result<Moto>.Failure(new Error("Moto não encontrada"));
                 }
 
                 var existingTag = await _dbContext.tags.FindAsync(moto.TagId);
@@ -100,7 +100,7 @@ namespace VroomAPI.Service {
             try {
                 var moto = await _dbContext.motos.FindAsync(id);
                 if (moto == null) {
-                    return Result.Failure(new Error("Moto não encontrada", $"Moto com o {id} não encontrada"));
+                    return Result.Failure(new Error("Moto não encontrada"));
                 }
 
                 _dbContext.motos.Remove(moto);
