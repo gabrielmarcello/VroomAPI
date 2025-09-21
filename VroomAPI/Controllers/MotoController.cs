@@ -79,8 +79,8 @@ namespace VroomAPI.Controllers {
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<Moto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetAllMotos() {
-            var result = await _motoService.GetAllMotos();
+        public async Task<IActionResult> GetAllMotos(int page = 1, int pageSize = 10) {
+            var result = await _motoService.GetAllMotosPaged(page, pageSize);
             
             if (result.IsFailure) {
                 return BadRequest(new { error = result.Error.Code, message = result.Error.Description });

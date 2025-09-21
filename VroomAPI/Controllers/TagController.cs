@@ -75,8 +75,8 @@ namespace VroomAPI.Controllers {
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<Tag>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetAllTags() {
-            var result = await _tagService.GetAllTags();
+        public async Task<IActionResult> GetAllTags(int page = 1, int pageSize = 10) {
+            var result = await _tagService.GetAllTagsPaged(page, pageSize);
             
             if (result.IsFailure) {
                 return BadRequest(new { error = result.Error.Code, message = result.Error.Description });

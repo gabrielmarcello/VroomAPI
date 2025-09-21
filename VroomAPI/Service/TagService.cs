@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VroomAPI.Abstractions;
 using VroomAPI.Data;
+using VroomAPI.Helpers;
 using VroomAPI.Interface;
 using VroomAPI.Model;
 
@@ -37,13 +38,13 @@ namespace VroomAPI.Service {
             }
         }
 
-        public async Task<Result<IEnumerable<Tag>>> GetAllTags() {
+        public async Task<Result<PagedList<Tag>>> GetAllTagsPaged(int page, int pageSize) {
             try {
-                var tags = await _dbContext.tags.ToListAsync();
-                return Result<IEnumerable<Tag>>.Success(tags);
+                var pagedTags = await PagedList<Tag>.createAsync(_dbContext.tags, page, pageSize);
+                return Result<PagedList<Tag>>.Success(pagedTags);
             }
             catch (Exception) {
-                return Result<IEnumerable<Tag>>.Failure(new Error("Falha ao buscar todas as tags"));
+                return Result<PagedList<Tag>>.Failure(new Error("Falha ao buscar todas as tags"));
             }
         }
 
