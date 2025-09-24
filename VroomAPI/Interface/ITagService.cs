@@ -1,13 +1,13 @@
 ﻿using VroomAPI.Abstractions;
+using VroomAPI.DTOs;
 using VroomAPI.Helpers;
-using VroomAPI.Model;
 
 namespace VroomAPI.Interface {
     public interface ITagService {
-        Task<Result<Tag>> CreateTag(Tag tag);
-        Task<Result<Tag>> GetTagById(int id);
-        Task<Result<PagedList<Tag>>> GetAllTagsPaged(int page, int pageSize);
-        Task<Result<Tag>> UpdateTag(Tag tag);
+        Task<Result<TagDto>> CreateTag(CreateTagDto createTagDto);
+        Task<Result<TagDto>> GetTagById(int id);
+        Task<Result<PagedList<TagDto>>> GetAllTagsPaged(int page, int pageSize);
+        Task<Result<TagDto>> UpdateTag(int id, UpdateTagDto updateTagDto);
         Task<Result> DeleteTag(int id);
     }
 }

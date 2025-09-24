@@ -1,4 +1,5 @@
 ﻿namespace VroomAPI.Abstractions {
+
     public class Result {
         protected Result(bool isSucess, Error error) {
             if (isSucess && error != Error.None ||

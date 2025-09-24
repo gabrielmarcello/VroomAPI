@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VroomAPI.Data;
 using VroomAPI.Interface;
+using VroomAPI.Mappings;
 using VroomAPI.Service;
 using System.Reflection;
 
@@ -9,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseOracle(builder.Configuration.GetConnectionString("OracleConnection")));
+
+builder.Services.AddAutoMapper(typeof(MotoMappingProfile));
 
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IMotoService, MotoService>();

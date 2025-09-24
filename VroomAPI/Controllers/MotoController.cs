@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using VroomAPI.DTOs;
 using VroomAPI.Interface;
-using VroomAPI.Model;
 using System.ComponentModel.DataAnnotations;
 
 namespace VroomAPI.Controllers {
@@ -22,7 +22,7 @@ namespace VroomAPI.Controllers {
         /// <summary>
         /// Cria uma nova moto no sistema
         /// </summary>
-        /// <param name="moto">Dados da moto a ser criada</param>
+        /// <param name="createMotoDto">Dados da moto a ser criada</param>
         /// <returns>Retorna a moto criada com o ID gerado</returns>
         /// <response code="201">Moto criada com sucesso</response>
         /// <response code="400">Dados inválidos fornecidos</response>
@@ -38,10 +38,10 @@ namespace VroomAPI.Controllers {
         /// }
         /// </example>
         [HttpPost]
-        [ProducesResponseType(typeof(Moto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(MotoDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateMoto([FromBody] Moto moto) {
-            var result = await _motoService.CreateMoto(moto);
+        public async Task<IActionResult> CreateMoto([FromBody] CreateMotoDto createMotoDto) {
+            var result = await _motoService.CreateMoto(createMotoDto);
             
             if (result.IsFailure) {
                 return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
@@ -58,7 +58,7 @@ namespace VroomAPI.Controllers {
         /// <response code="200">Moto encontrada com sucesso</response>
         /// <response code="404">Moto não encontrada</response>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(Moto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MotoDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetMotoById([FromRoute] [Required] int id) {
             var result = await _motoService.GetMotoById(id);
@@ -77,7 +77,7 @@ namespace VroomAPI.Controllers {
         /// <response code="200">Lista de motos retornada com sucesso</response>
         /// <response code="400">Erro ao buscar motos</response>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<Moto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<MotoDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllMotos(int page = 1, int pageSize = 10) {
             var result = await _motoService.GetAllMotosPaged(page, pageSize);
@@ -93,15 +93,13 @@ namespace VroomAPI.Controllers {
         /// Atualiza os dados de uma moto existente
         /// </summary>
         /// <param name="id">ID da moto a ser atualizada</param>
-        /// <param name="moto">Novos dados da moto</param>
+        /// <param name="updateMotoDto">Novos dados da moto</param>
         /// <returns>Retorna a moto atualizada</returns>
         /// <response code="200">Moto atualizada com sucesso</response>
-        /// <response code="400">ID da rota não coincide com ID da moto</response>
         /// <response code="404">Moto não encontrada</response>
         /// <example>
         /// Exemplo de payload:
         /// {
-        ///   "id": 1,
         ///   "placa": "XYZ-5678",
         ///   "chassi": "9BWZZZ377VT004251",
         ///   "descricaoProblema": "Problema no freio traseiro",
@@ -111,15 +109,11 @@ namespace VroomAPI.Controllers {
         /// }
         /// </example>
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(Moto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MotoDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateMoto([FromRoute] [Required] int id, [FromBody] Moto moto) {
-            if (id != moto.Id) {
-                return BadRequest(new { error = "Os ids não coencidem", message = "O id fornecido não é o mesmo da moto fornecida" });
-            }
-
-            var result = await _motoService.UpdateMoto(moto);
+        public async Task<IActionResult> UpdateMoto([FromRoute] [Required] int id, [FromBody] UpdateMotoDto updateMotoDto) {
+            var result = await _motoService.UpdateMoto(id, updateMotoDto);
             
             if (result.IsFailure) {
                 return NotFound(new { error = result.Error.Code, message = result.Error.Description });

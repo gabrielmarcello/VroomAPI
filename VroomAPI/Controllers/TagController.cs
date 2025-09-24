@@ -2,6 +2,7 @@
 using VroomAPI.Interface;
 using VroomAPI.Model;
 using System.ComponentModel.DataAnnotations;
+using VroomAPI.DTOs;
 
 namespace VroomAPI.Controllers {
 
@@ -36,7 +37,7 @@ namespace VroomAPI.Controllers {
         [HttpPost]
         [ProducesResponseType(typeof(Tag), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateTag([FromBody] Tag tag) {
+        public async Task<IActionResult> CreateTag([FromBody] CreateTagDto tag) {
             var result = await _tagService.CreateTag(tag);
             
             if (result.IsFailure) {
@@ -106,12 +107,8 @@ namespace VroomAPI.Controllers {
         [ProducesResponseType(typeof(Tag), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateTag([FromRoute] [Required] int id, [FromBody] Tag tag) {
-            if (id != tag.Id) {
-                return BadRequest(new { error = "Os ids não coencidem", message = "O id fornecido não é o mesmo da tag fornecida" });
-            }
-
-            var result = await _tagService.UpdateTag(tag);
+        public async Task<IActionResult> UpdateTag([FromRoute] [Required] int id, [FromBody] UpdateTagDto tag) {
+            var result = await _tagService.UpdateTag(id, tag);
             
             if (result.IsFailure) {
                 return NotFound(new { error = result.Error.Code, message = result.Error.Description });
