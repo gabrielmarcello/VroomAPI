@@ -18,6 +18,9 @@ namespace VroomAPI.Mappings
             CreateMap<Tag, TagDto>();
             CreateMap<CreateTagDto, Tag>();
             CreateMap<UpdateTagDto, Tag>();
+            
+            CreateMap<EventoIot, EventoIotDto>();
+            CreateMap<CreateEventoIotDto, EventoIot>();
         }
     }
 }

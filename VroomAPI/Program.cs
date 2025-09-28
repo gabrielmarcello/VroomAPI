@@ -15,6 +15,7 @@ builder.Services.AddAutoMapper(typeof(MotoMappingProfile));
 
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IMotoService, MotoService>();
+builder.Services.AddScoped<IEventoService, EventoService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
