@@ -420,7 +420,7 @@ Controllers: Recebem requisições HTTP
 
 ## Autores
 
-- [@Gabriel Marcello](https://github.com/gabrielmarcello) RM556783
-- [@Guilherme Guimarães](https://github.com/Guimaraes131) RM557074
-- [@Matheus Luna](https://github.com/mlunahodov) RM555547
+- [@Gabriel Marcello](https://github.com/gabrielmarcello) RM556783 2TDSPW
+- [@Guilherme Guimarães](https://github.com/Guimaraes131) RM557074 2TDSA
+- [@Matheus Luna](https://github.com/mlunahodov) RM555547 2TDSA
 

@@ -7,9 +7,9 @@ namespace VroomAPI.Mappings
     /// <summary>
     /// Profile de mapeamento do AutoMapper para entidades
     /// </summary>
-    public class MotoMappingProfile : Profile
+    public class MappingProfile : Profile
     {
-        public MotoMappingProfile()
+        public MappingProfile()
         {
             CreateMap<Moto, MotoDto>();
             CreateMap<CreateMotoDto, Moto>();

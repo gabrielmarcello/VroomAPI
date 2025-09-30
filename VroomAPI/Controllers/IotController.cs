@@ -1,17 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using VroomAPI.DTOs;
 using VroomAPI.Interface;
-using VroomAPI.Model;
-using VroomAPI.Service;
+using VroomAPI.Helpers;
 
 namespace VroomAPI.Controllers
 {
-    /// <summary>
-    /// Controller para gerenciamento de eventos IoT
-    /// </summary>
     [ApiController]
     [Route("[controller]")]
+    [Tags("IoT")]
     public class IotController : ControllerBase
     {
         private readonly IEventoService _eventoService;
@@ -21,50 +17,83 @@ namespace VroomAPI.Controllers
             _eventoService = eventoService;
         }
 
-        /// <summary>
-        /// Recebe e processa um evento IoT
-        /// </summary>
-        /// <param name="createEventoDto">Dados do evento IoT</param>
-        /// <returns>Resultado da operação</returns>
-        /// <response code="200">Evento processado com sucesso</response>
-        /// <response code="400">Dados inválidos</response>
-        /// <response code="404">Tag não encontrada</response>
         [HttpPost("/historico")]
         [ProducesResponseType(typeof(EventoIotDto), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> RecebeIot([FromBody] CreateEventoIotDto createEventoDto)
         {
-            if (!ModelState.IsValid)
-            {
+            if (!ModelState.IsValid) { 
                 return BadRequest(ModelState);
             }
 
             var result = await _eventoService.CreateEvento(createEventoDto);
 
-            if (result.IsFailure)
-            {
-                if (result.Error.Code == "TAG_NOT_FOUND")
-                {
-                    return NotFound(new { message = result.Error.Description });
-                }
-                return BadRequest(new { message = result.Error.Description });
+            if (result.IsFailure) {
+                return result.Error.Code == "TAG_NOT_FOUND" 
+                    ? NotFound(new { message = result.Error.Description })
+                    : BadRequest(new { message = result.Error.Description });
             }
 
+            AddHateoasLinks(result.Value);
             return Ok(result.Value);
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(PagedResponse<EventoIotDto>), 200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> GetAllEventos(int page = 1, int pageSize = 10)
         {
             var result = await _eventoService.GetAllEventosPaged(page, pageSize);
 
-            if (result.IsFailure)
-            {
+            if (result.IsFailure) { 
                 return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
             }
 
-            return Ok(result.Value);
+            var response = CreatePagedResponse(result.Value, page, pageSize);
+            AddCollectionLinks(response, page, pageSize);
+
+            return Ok(response);
+        }
+
+        private PagedResponse<EventoIotDto> CreatePagedResponse(PagedList<EventoIotDto> pagedList, int page, int pageSize)
+        {
+            var response = new PagedResponse<EventoIotDto>
+            {
+                Data = pagedList.Items,
+                CurrentPage = pagedList.Page,
+                PageSize = pagedList.PageSize,
+                TotalPages = (int)Math.Ceiling((double)pagedList.TotalCount / pagedList.PageSize),
+                TotalCount = pagedList.TotalCount,
+                HasNext = pagedList.hasNextPage,
+                HasPrevious = pagedList.hasPreviousPage
+            };
+
+            foreach (var evento in response.Data)
+                AddHateoasLinks(evento);
+
+            return response;
+        }
+
+        private void AddHateoasLinks(EventoIotDto evento)
+        {
+            var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            
+            evento.AddSelfLink(baseUrl, "historico", evento.Id);
+            evento.AddCollectionLink(baseUrl, "Iot");
+        }
+
+        private void AddCollectionLinks(PagedResponse<EventoIotDto> response, int page, int pageSize)
+        {
+            var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            
+            response.AddSelfLink($"{baseUrl}/Iot?page={page}&pageSize={pageSize}");
+            
+            if (response.HasNext)
+                response.AddLink($"{baseUrl}/Iot?page={page + 1}&pageSize={pageSize}", "next");
+            
+            if (response.HasPrevious)
+                response.AddLink($"{baseUrl}/Iot?page={page - 1}&pageSize={pageSize}", "prev");
         }
     }
 }

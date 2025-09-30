@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseOracle(builder.Configuration.GetConnectionString("OracleConnection")));
 
-builder.Services.AddAutoMapper(typeof(MotoMappingProfile));
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IMotoService, MotoService>();
