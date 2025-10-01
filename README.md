@@ -342,28 +342,42 @@ Para rodar esse projeto, você vai precisar adicionar as seguintes variáveis de
 ```json
 {
   "ConnectionStrings": {
-    "OracleConnection": "Data Source=ConexaoBanco;User Id=seuRM;Password=suaSenha"
+    "OracleConnection": "Data Source=localhost:1521/XE;User Id=seuRM;Password=suaSenha"
   }
 }
 ```
 
 ## Como Executar
 
-1. Clone o repositório
-2. Configure as variáveis de ambiente no `appsettings.json`
-3. Execute o comando: `dotnet restore`
-4. **Configure o banco de dados:**
-   - Certifique-se de que sua string de conexão Oracle está correta no `appsettings.json`
-   - Execute as migrations para criar/atualizar o banco de dados:
-     ```bash
-     dotnet ef database update
-     ```
-   - Caso não tenha o EF Tools instalado, instale com:
-     ```bash
-     dotnet tool install --global dotnet-ef
-     ```
-5. Execute o comando: `dotnet run`
-6. Acesse a documentação da API em: `https://localhost:5001/swagger`
+1. **Clone o repositório**
+```bash
+git clone https://github.com/gabrielmarcello/VroomAPI.git
+cd VroomAPI
+```
+
+2. **Configure a string de conexão**
+   - Edite o `appsettings.json` com suas credenciais do Oracle
+
+3. **Instale as dependências**
+```bash
+dotnet restore
+```
+
+4. **Configure o banco de dados**
+```bash
+dotnet tool install --global dotnet-ef
+
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
+
+5. **Execute a aplicação**
+```bash
+dotnet run
+```
+
+6. **Acesse a API**
+   - Swagger: `https://localhost:5001/swagger`
 
 ## Arquitetura
 
