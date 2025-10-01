@@ -352,7 +352,7 @@ Para rodar esse projeto, você vai precisar adicionar as seguintes variáveis de
 1. **Clone o repositório**
 ```bash
 git clone https://github.com/gabrielmarcello/VroomAPI.git
-cd VroomAPI
+cd \VroomAPI\VroomAPI
 ```
 
 2. **Configure a string de conexão**
@@ -367,6 +367,8 @@ dotnet restore
 ```bash
 dotnet tool install --global dotnet-ef
 
+cd .\VroomAPI\
+
 dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
@@ -377,7 +379,7 @@ dotnet run
 ```
 
 6. **Acesse a API**
-   - Swagger: `https://localhost:5001/swagger`
+   - Swagger: `http://localhost:5189/swagger`
 
 ## Arquitetura
 
