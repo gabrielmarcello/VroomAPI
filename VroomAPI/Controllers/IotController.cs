@@ -17,6 +17,14 @@ namespace VroomAPI.Controllers
             _eventoService = eventoService;
         }
 
+        /// <summary>
+        /// Recebe e registra eventos IoT no histórico do sistema
+        /// </summary>
+        /// <param name="createEventoDto">Dados do evento IoT contendo informações da tag e coordenadas</param>
+        /// <returns>Evento IoT registrado com sucesso</returns>
+        /// <response code="200">Evento IoT registrado com sucesso</response>
+        /// <response code="400">Dados inválidos fornecidos ou erro de validação</response>
+        /// <response code="404">Tag especificada não foi encontrada</response>
         [HttpPost("/historico")]
         [ProducesResponseType(typeof(EventoIotDto), 200)]
         [ProducesResponseType(400)]
@@ -39,6 +47,14 @@ namespace VroomAPI.Controllers
             return Ok(result.Value);
         }
 
+        /// <summary>
+        /// Lista todos os eventos IoT registrados no sistema com paginação
+        /// </summary>
+        /// <param name="page">Número da página (padrão: 1)</param>
+        /// <param name="pageSize">Quantidade de itens por página (padrão: 10)</param>
+        /// <returns>Lista paginada de eventos IoT</returns>
+        /// <response code="200">Lista de eventos IoT retornada com sucesso</response>
+        /// <response code="400">Parâmetros de paginação inválidos</response>
         [HttpGet]
         [ProducesResponseType(typeof(PagedResponse<EventoIotDto>), 200)]
         [ProducesResponseType(400)]

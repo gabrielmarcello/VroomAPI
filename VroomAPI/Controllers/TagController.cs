@@ -18,6 +18,13 @@ namespace VroomAPI.Controllers {
             _tagService = tagService;
         }
 
+        /// <summary>
+        /// Cria uma nova tag no sistema
+        /// </summary>
+        /// <param name="tag">Dados para criação da tag contendo coordenada e disponibilidade</param>
+        /// <returns>Tag criada com sucesso</returns>
+        /// <response code="201">Tag criada com sucesso</response>
+        /// <response code="400">Dados inválidos fornecidos</response>
         [HttpPost]
         [ProducesResponseType(typeof(TagDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
@@ -32,6 +39,13 @@ namespace VroomAPI.Controllers {
             return CreatedAtAction(nameof(GetTagById), new { id = result.Value.Id }, result.Value);
         }
 
+        /// <summary>
+        /// Busca uma tag específica pelo ID
+        /// </summary>
+        /// <param name="id">ID único da tag a ser buscada</param>
+        /// <returns>Tag encontrada</returns>
+        /// <response code="200">Tag encontrada com sucesso</response>
+        /// <response code="404">Tag não encontrada</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(TagDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
@@ -46,6 +60,14 @@ namespace VroomAPI.Controllers {
             return Ok(result.Value);
         }
 
+        /// <summary>
+        /// Lista todas as tags com paginação
+        /// </summary>
+        /// <param name="page">Número da página (padrão: 1)</param>
+        /// <param name="pageSize">Quantidade de itens por página (padrão: 10)</param>
+        /// <returns>Lista paginada de tags</returns>
+        /// <response code="200">Lista de tags retornada com sucesso</response>
+        /// <response code="400">Parâmetros de paginação inválidos</response>
         [HttpGet]
         [ProducesResponseType(typeof(PagedResponse<TagDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
@@ -61,6 +83,15 @@ namespace VroomAPI.Controllers {
             return Ok(response);
         }
 
+        /// <summary>
+        /// Atualiza uma tag existente
+        /// </summary>
+        /// <param name="id">ID da tag a ser atualizada</param>
+        /// <param name="tag">Dados atualizados da tag</param>
+        /// <returns>Tag atualizada</returns>
+        /// <response code="200">Tag atualizada com sucesso</response>
+        /// <response code="400">Dados inválidos fornecidos</response>
+        /// <response code="404">Tag não encontrada</response>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(TagDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
@@ -76,6 +107,13 @@ namespace VroomAPI.Controllers {
             return Ok(result.Value);
         }
 
+        /// <summary>
+        /// Remove uma tag do sistema
+        /// </summary>
+        /// <param name="id">ID da tag a ser removida</param>
+        /// <returns>Confirmação da remoção</returns>
+        /// <response code="204">Tag removida com sucesso</response>
+        /// <response code="404">Tag não encontrada</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]

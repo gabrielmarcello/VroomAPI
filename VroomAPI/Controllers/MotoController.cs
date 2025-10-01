@@ -18,6 +18,13 @@ namespace VroomAPI.Controllers {
             _motoService = motoService;
         }
 
+        /// <summary>
+        /// Cria uma nova moto no sistema
+        /// </summary>
+        /// <param name="createMotoDto">Dados para criação da moto incluindo placa, modelo, ano</param>
+        /// <returns>Moto criada com sucesso</returns>
+        /// <response code="201">Moto criada com sucesso</response>
+        /// <response code="400">Dados inválidos fornecidos</response>
         [HttpPost]
         [ProducesResponseType(typeof(MotoDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
@@ -32,6 +39,13 @@ namespace VroomAPI.Controllers {
             return CreatedAtAction(nameof(GetMotoById), new { id = result.Value.Id }, result.Value);
         }
 
+        /// <summary>
+        /// Busca uma moto específica pelo ID
+        /// </summary>
+        /// <param name="id">ID único da moto a ser buscada</param>
+        /// <returns>Moto encontrada</returns>
+        /// <response code="200">Moto encontrada com sucesso</response>
+        /// <response code="404">Moto não encontrada</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(MotoDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
@@ -46,6 +60,14 @@ namespace VroomAPI.Controllers {
             return Ok(result.Value);
         }
 
+        /// <summary>
+        /// Lista todas as motos com paginação
+        /// </summary>
+        /// <param name="page">Número da página (padrão: 1)</param>
+        /// <param name="pageSize">Quantidade de itens por página (padrão: 10)</param>
+        /// <returns>Lista paginada de motos</returns>
+        /// <response code="200">Lista de motos retornada com sucesso</response>
+        /// <response code="400">Parâmetros de paginação inválidos</response>
         [HttpGet]
         [ProducesResponseType(typeof(PagedResponse<MotoDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
@@ -62,6 +84,15 @@ namespace VroomAPI.Controllers {
             return Ok(response);
         }
 
+        /// <summary>
+        /// Atualiza uma moto existente
+        /// </summary>
+        /// <param name="id">ID da moto a ser atualizada</param>
+        /// <param name="updateMotoDto">Dados atualizados da moto</param>
+        /// <returns>Moto atualizada</returns>
+        /// <response code="200">Moto atualizada com sucesso</response>
+        /// <response code="400">Dados inválidos fornecidos</response>
+        /// <response code="404">Moto não encontrada</response>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(MotoDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
@@ -77,6 +108,13 @@ namespace VroomAPI.Controllers {
             return Ok(result.Value);
         }
 
+        /// <summary>
+        /// Remove uma moto do sistema
+        /// </summary>
+        /// <param name="id">ID da moto a ser removida</param>
+        /// <returns>Confirmação da remoção</returns>
+        /// <response code="204">Moto removida com sucesso</response>
+        /// <response code="404">Moto não encontrada</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(object), StatusCodes.Status404NotFound)]
