@@ -342,7 +342,7 @@ Para rodar esse projeto, você vai precisar adicionar as seguintes variáveis de
 ```json
 {
   "ConnectionStrings": {
-    "OracleConnection": "Data Source=localhost:1521/XE;User Id=seuRM;Password=suaSenha"
+    "OracleConnection": "Data Source=seuBanco;User Id=seuRM;Password=suaSenha"
   }
 }
 ```
