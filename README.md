@@ -343,6 +343,9 @@ Para rodar esse projeto, você vai precisar adicionar as seguintes variáveis de
 {
   "ConnectionStrings": {
     "OracleConnection": "Data Source=seuBanco;User Id=seuRM;Password=suaSenha"
+  },
+  "Authentication": {
+    "ApiKey": "sua-api-key-aqui"
   }
 }
 ```
