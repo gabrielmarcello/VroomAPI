@@ -2,12 +2,14 @@
 using VroomAPI.DTOs;
 using VroomAPI.Interface;
 using VroomAPI.Helpers;
+using VroomAPI.Authentication;
 
 namespace VroomAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
     [Tags("IoT")]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class IotController : ControllerBase
     {
         private readonly IEventoService _eventoService;

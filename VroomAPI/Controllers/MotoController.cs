@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VroomAPI.DTOs;
-using VroomAPI.Interface;
 using System.ComponentModel.DataAnnotations;
+using VroomAPI.Authentication;
+using VroomAPI.DTOs;
 using VroomAPI.Helpers;
+using VroomAPI.Interface;
 
 namespace VroomAPI.Controllers {
 
@@ -10,6 +12,7 @@ namespace VroomAPI.Controllers {
     [Route("[controller]")]
     [Tags("Motos")]
     [Produces("application/json")]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class MotoController : ControllerBase {
 
         private readonly IMotoService _motoService;

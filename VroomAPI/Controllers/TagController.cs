@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VroomAPI.Interface;
 using System.ComponentModel.DataAnnotations;
+using VroomAPI.Authentication;
 using VroomAPI.DTOs;
 using VroomAPI.Helpers;
+using VroomAPI.Interface;
 
 namespace VroomAPI.Controllers {
 
@@ -10,6 +11,7 @@ namespace VroomAPI.Controllers {
     [Route("[controller]")]
     [Tags("Tags")]
     [Produces("application/json")]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class TagController : ControllerBase {
 
         private readonly ITagService _tagService;

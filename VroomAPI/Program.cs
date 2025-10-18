@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using VroomAPI.Authentication;
 using VroomAPI.Data;
 using VroomAPI.Interface;
 using VroomAPI.Mappings;
@@ -41,6 +42,7 @@ builder.Services.AddHealthChecksUI(opt =>
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IMotoService, MotoService>();
 builder.Services.AddScoped<IEventoService, EventoService>();
+builder.Services.AddScoped<ApiKeyAuthFilter>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -67,7 +69,6 @@ app.MapHealthChecksUI(options =>
 {
     options.UIPath = "/health-dashboard";
 });
-
 
 if (app.Environment.IsDevelopment())
 {
