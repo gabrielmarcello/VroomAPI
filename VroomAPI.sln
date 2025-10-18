@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VroomAPI", "VroomAPI\VroomAPI.csproj", "{6E178523-DA7A-4F01-8CD8-5B680D046AD7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VroomAPI.Test", "VroomAPI.Test\VroomAPI.Test.csproj", "{DF66AAB6-5110-4CAB-BF08-0534F80331D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{6E178523-DA7A-4F01-8CD8-5B680D046AD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E178523-DA7A-4F01-8CD8-5B680D046AD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E178523-DA7A-4F01-8CD8-5B680D046AD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF66AAB6-5110-4CAB-BF08-0534F80331D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF66AAB6-5110-4CAB-BF08-0534F80331D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF66AAB6-5110-4CAB-BF08-0534F80331D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF66AAB6-5110-4CAB-BF08-0534F80331D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
