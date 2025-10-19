@@ -3,11 +3,14 @@ using VroomAPI.DTOs;
 using VroomAPI.Interface;
 using VroomAPI.Helpers;
 using VroomAPI.Authentication;
+using Asp.Versioning;
 
 namespace VroomAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
+    [ApiVersion("1.0", Deprecated = true)]
     [Tags("IoT")]
     [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class IotController : ControllerBase
@@ -27,7 +30,7 @@ namespace VroomAPI.Controllers
         /// <response code="200">Evento IoT registrado com sucesso</response>
         /// <response code="400">Dados inválidos fornecidos ou erro de validação</response>
         /// <response code="404">Tag especificada não foi encontrada</response>
-        [HttpPost("/historico")]
+        [HttpPost("historico")]
         [ProducesResponseType(typeof(EventoIotDto), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
@@ -96,22 +99,24 @@ namespace VroomAPI.Controllers
         private void AddHateoasLinks(EventoIotDto evento)
         {
             var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            var version = HttpContext.GetRequestedApiVersion()?.ToString() ?? "2.0";
             
-            evento.AddSelfLink(baseUrl, "historico", evento.Id);
-            evento.AddCollectionLink(baseUrl, "Iot");
+            evento.AddSelfLink(baseUrl, $"v{version}/historico", evento.Id);
+            evento.AddCollectionLink(baseUrl, $"v{version}/Iot");
         }
 
         private void AddCollectionLinks(PagedResponse<EventoIotDto> response, int page, int pageSize)
         {
             var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            var version = HttpContext.GetRequestedApiVersion()?.ToString() ?? "2.0";
             
-            response.AddSelfLink($"{baseUrl}/Iot?page={page}&pageSize={pageSize}");
+            response.AddSelfLink($"{baseUrl}/v{version}/Iot?page={page}&pageSize={pageSize}");
             
             if (response.HasNext)
-                response.AddLink($"{baseUrl}/Iot?page={page + 1}&pageSize={pageSize}", "next");
+                response.AddLink($"{baseUrl}/v{version}/Iot?page={page + 1}&pageSize={pageSize}", "next");
             
             if (response.HasPrevious)
-                response.AddLink($"{baseUrl}/Iot?page={page - 1}&pageSize={pageSize}", "prev");
+                response.AddLink($"{baseUrl}/v{version}/Iot?page={page - 1}&pageSize={pageSize}", "prev");
         }
     }
 }

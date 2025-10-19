@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using VroomAPI.Authentication;
 using VroomAPI.DTOs;
@@ -8,7 +9,9 @@ using VroomAPI.Interface;
 namespace VroomAPI.Controllers {
 
     [ApiController]
-    [Route("[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
+    [ApiVersion("1.0", Deprecated = true)]
     [Tags("Tags")]
     [Produces("application/json")]
     [ServiceFilter(typeof(ApiKeyAuthFilter))]
@@ -85,6 +88,20 @@ namespace VroomAPI.Controllers {
             return Ok(response);
         }
 
+        [HttpGet]
+        [MapToApiVersion(1.0)]
+        public async Task<IActionResult> GetAllTagsV1()
+        {
+            var result = await _tagService.GetAllTags();
+
+            if (result.IsFailure)
+            {
+                return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
+            }
+
+            return Ok(result.Value);
+        }
+
         /// <summary>
         /// Atualiza uma tag existente
         /// </summary>
@@ -152,23 +169,25 @@ namespace VroomAPI.Controllers {
         private void AddHateoasLinks(TagDto tag)
         {
             var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            var version = HttpContext.GetRequestedApiVersion()?.ToString() ?? "2.0";
             
-            tag.AddSelfLink(baseUrl, "Tag", tag.Id);
-            tag.AddCollectionLink(baseUrl, "Tag");
+            tag.AddSelfLink(baseUrl, $"v{version}/Tag", tag.Id);
+            tag.AddCollectionLink(baseUrl, $"v{version}/Tag");
         }
 
         private void AddCollectionLinks(PagedResponse<TagDto> response, int page, int pageSize)
         {
             var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            var version = HttpContext.GetRequestedApiVersion()?.ToString() ?? "2.0";
             
-            response.AddSelfLink($"{baseUrl}/Tag?page={page}&pageSize={pageSize}");
+            response.AddSelfLink($"{baseUrl}/v{version}/Tag?page={page}&pageSize={pageSize}");
             
             if (response.HasNext) { 
-                response.AddLink($"{baseUrl}/Tag?page={page + 1}&pageSize={pageSize}", "next");
+                response.AddLink($"{baseUrl}/v{version}/Tag?page={page + 1}&pageSize={pageSize}", "next");
             }
 
             if (response.HasPrevious) { 
-                response.AddLink($"{baseUrl}/Tag?page={page - 1}&pageSize={pageSize}", "prev");
+                response.AddLink($"{baseUrl}/v{version}/Tag?page={page - 1}&pageSize={pageSize}", "prev");
             }
         }
     }

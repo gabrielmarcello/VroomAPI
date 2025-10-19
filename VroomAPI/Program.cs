@@ -9,6 +9,7 @@ using VroomAPI.Data;
 using VroomAPI.Interface;
 using VroomAPI.Mappings;
 using VroomAPI.Service;
+using Asp.Versioning;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,15 +48,39 @@ builder.Services.AddScoped<ApiKeyAuthFilter>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => {
-    c.SwaggerDoc("v1", new OpenApiInfo 
+    c.SwaggerDoc("v1.0", new OpenApiInfo 
     { 
         Title = "VroomAPI", 
-        Version = "v1",
-        Description = "Documentação VroomAPI",
+        Version = "v1.0",
+        Description = "Documentação VroomAPI v1.0 (Deprecated)",
+    });
+    
+    c.SwaggerDoc("v2.0", new OpenApiInfo 
+    { 
+        Title = "VroomAPI", 
+        Version = "v2.0",
+        Description = "Documentação VroomAPI v2.0",
     });
     
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(2.0);
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new HeaderApiVersionReader("api-version")
+    );
+    options.ReportApiVersions = true;
+    options.ApiVersionSelector = new DefaultApiVersionSelector(options);
+
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VV";
+    options.SubstituteApiVersionInUrl = true;
 });
 
 var app = builder.Build();
@@ -75,7 +100,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "VroomAPI v1");
+        c.SwaggerEndpoint("/swagger/v2.0/swagger.json", "VroomAPI v2.0");
+        c.SwaggerEndpoint("/swagger/v1.0/swagger.json", "VroomAPI v1.0 (Deprecated)");
         c.DocumentTitle = "VroomAPI - Documentação";
     });
 }

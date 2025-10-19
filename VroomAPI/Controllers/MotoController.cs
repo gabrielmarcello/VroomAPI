@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -9,7 +10,9 @@ using VroomAPI.Interface;
 namespace VroomAPI.Controllers {
 
     [ApiController]
-    [Route("[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
+    [ApiVersion("1.0", Deprecated = true)]
     [Tags("Motos")]
     [Produces("application/json")]
     [ServiceFilter(typeof(ApiKeyAuthFilter))]
@@ -86,6 +89,19 @@ namespace VroomAPI.Controllers {
 
             return Ok(response);
         }
+        [HttpGet]
+        [MapToApiVersion(1.0)]
+        public async Task<IActionResult> GetAllMotosV1()
+        {
+            var result = await _motoService.GetAllMotos();
+
+            if (result.IsFailure)
+            {
+                return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
+            }
+
+            return Ok(result.Value);
+        }
 
         /// <summary>
         /// Atualiza uma moto existente
@@ -154,22 +170,24 @@ namespace VroomAPI.Controllers {
         private void AddHateoasLinks(MotoDto moto)
         {
             var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            var version = HttpContext.GetRequestedApiVersion()?.ToString() ?? "2.0";
             
-            moto.AddSelfLink(baseUrl, "Moto", moto.Id);
-            moto.AddCollectionLink(baseUrl, "Moto");
+            moto.AddSelfLink(baseUrl, $"v{version}/Moto", moto.Id);
+            moto.AddCollectionLink(baseUrl, $"v{version}/Moto");
         }
 
         private void AddCollectionLinks(PagedResponse<MotoDto> response, int page, int pageSize)
         {
             var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            var version = HttpContext.GetRequestedApiVersion()?.ToString() ?? "2.0";
             
-            response.AddSelfLink($"{baseUrl}/Moto?page={page}&pageSize={pageSize}");
+            response.AddSelfLink($"{baseUrl}/v{version}/Moto?page={page}&pageSize={pageSize}");
             
             if (response.HasNext)
-                response.AddLink($"{baseUrl}/Moto?page={page + 1}&pageSize={pageSize}", "next");
+                response.AddLink($"{baseUrl}/v{version}/Moto?page={page + 1}&pageSize={pageSize}", "next");
             
             if (response.HasPrevious)
-                response.AddLink($"{baseUrl}/Moto?page={page - 1}&pageSize={pageSize}", "prev");
+                response.AddLink($"{baseUrl}/v{version}/Moto?page={page - 1}&pageSize={pageSize}", "prev");
         }
     }
 }
