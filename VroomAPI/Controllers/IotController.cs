@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using VroomAPI.DTOs;
-using VroomAPI.Interface;
-using VroomAPI.Helpers;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc;
+using System.Text;
+using System.Text.Json;
 using VroomAPI.Authentication;
-using Asp.Versioning;
+using VroomAPI.DTOs;
+using VroomAPI.Model;
+using VroomAPI.Helpers;
+using VroomAPI.Interface;
 
 namespace VroomAPI.Controllers
 {
@@ -16,10 +19,12 @@ namespace VroomAPI.Controllers
     public class IotController : ControllerBase
     {
         private readonly IEventoService _eventoService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public IotController(IEventoService eventoService)
+        public IotController(IEventoService eventoService, IHttpClientFactory httpClientFactory)
         {
             _eventoService = eventoService;
+            _httpClientFactory = httpClientFactory;
         }
 
         /// <summary>
@@ -75,6 +80,22 @@ namespace VroomAPI.Controllers
             AddCollectionLinks(response, page, pageSize);
 
             return Ok(response);
+        }
+
+        [HttpPost("set")]
+        public async Task<IActionResult> SetLed([FromBody] LedCommand command)
+        {
+            var client = _httpClientFactory.CreateClient();
+            var json = JsonSerializer.Serialize(command);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var nodeRedUrl = "http://localhost:1880/led";
+            var response = await client.PostAsync(nodeRedUrl, content);
+
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode, "Erro ao enviar comando");
+
+            return Ok("Comando enviado!");
         }
 
         private PagedResponse<EventoIotDto> CreatePagedResponse(PagedList<EventoIotDto> pagedList, int page, int pageSize)
