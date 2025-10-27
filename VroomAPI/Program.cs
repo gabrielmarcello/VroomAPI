@@ -42,7 +42,7 @@ builder.Services.AddHealthChecksUI(opt =>
 
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IMotoService, MotoService>();
-builder.Services.AddScoped<IEventoService, EventoService>();
+builder.Services.AddScoped<IIotService, IotService>();
 builder.Services.AddScoped<ApiKeyAuthFilter>();
 
 builder.Services.AddControllers();

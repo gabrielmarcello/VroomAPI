@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using VroomAPI.Abstractions;
 using VroomAPI.Data;
 using VroomAPI.DTOs;
@@ -12,15 +15,17 @@ namespace VroomAPI.Service
     /// <summary>
     /// Serviço para gerenciamento de eventos IoT
     /// </summary>
-    public class EventoService : IEventoService
+    public class IotService : IIotService
     {
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public EventoService(AppDbContext dbContext, IMapper mapper)
+        public IotService(AppDbContext dbContext, IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _dbContext = dbContext;
             _mapper = mapper;
+            _httpClientFactory = httpClientFactory;
         }
 
         /// <summary>
@@ -42,8 +47,25 @@ namespace VroomAPI.Service
             }
             catch (Exception)
             {
-                return Result<EventoIotDto>.Failure(new Error("CREATE_EVENTO_FAILED", $"Falha ao criar evento"));
+                return Result<EventoIotDto>.Failure(new Error("CREATE_EVENTO_FAILED", "Falha ao criar evento"));
             }
+        }
+
+        public async Task<Result> SendCommandAsync(LedCommandDto command)
+        {
+            var client = _httpClientFactory.CreateClient();
+            var json = JsonSerializer.Serialize(command);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var nodeRedUrl = "http://localhost:1880/led";
+            var response = await client.PostAsync(nodeRedUrl, content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result.Failure(new Error("SEND_EVENTO_FAILED", "Falha ao enviar evento"));
+            }
+
+            return Result.Success();
         }
 
         public async Task<Result<PagedList<EventoIotDto>>> GetAllEventosPaged(int page, int pageSize)

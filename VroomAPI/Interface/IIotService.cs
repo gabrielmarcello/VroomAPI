@@ -1,13 +1,14 @@
 using VroomAPI.Abstractions;
 using VroomAPI.DTOs;
 using VroomAPI.Helpers;
+using VroomAPI.Model;
 
 namespace VroomAPI.Interface
 {
     /// <summary>
     /// Interface para serviços de eventos IoT
     /// </summary>
-    public interface IEventoService
+    public interface IIotService
     {
         /// <summary>
         /// Cria um novo evento IoT
@@ -15,6 +16,7 @@ namespace VroomAPI.Interface
         /// <param name="createEventoDto">Dados para criação do evento</param>
         /// <returns>Resultado da operação com o evento criado</returns>
         Task<Result<EventoIotDto>> CreateEvento(CreateEventoIotDto createEventoDto);
+        Task<Result> SendCommandAsync(LedCommandDto command);
         Task<Result<PagedList<EventoIotDto>>> GetAllEventosPaged(int page, int pageSize);
     }
 }

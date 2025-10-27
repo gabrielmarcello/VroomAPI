@@ -18,10 +18,10 @@ namespace VroomAPI.Controllers
     [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class IotController : ControllerBase
     {
-        private readonly IEventoService _eventoService;
+        private readonly IIotService _eventoService;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public IotController(IEventoService eventoService, IHttpClientFactory httpClientFactory)
+        public IotController(IIotService eventoService, IHttpClientFactory httpClientFactory)
         {
             _eventoService = eventoService;
             _httpClientFactory = httpClientFactory;
@@ -83,17 +83,14 @@ namespace VroomAPI.Controllers
         }
 
         [HttpPost("set")]
-        public async Task<IActionResult> SetLed([FromBody] LedCommand command)
+        public async Task<IActionResult> SetLed([FromBody] LedCommandDto command)
         {
-            var client = _httpClientFactory.CreateClient();
-            var json = JsonSerializer.Serialize(command);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var result = await _eventoService.SendCommandAsync(command);
 
-            var nodeRedUrl = "http://localhost:1880/led";
-            var response = await client.PostAsync(nodeRedUrl, content);
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Erro ao enviar comando");
+            if (result.IsFailure)
+            {
+                return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
+            }
 
             return Ok("Comando enviado!");
         }
