@@ -18,6 +18,16 @@ var connectionString = builder.Configuration.GetConnectionString("OracleConnecti
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseOracle(connectionString));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("MobileAppPolicy", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddHealthChecks()
     .AddOracle(
@@ -131,6 +141,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("MobileAppPolicy");
 
 app.UseAuthorization();
 
