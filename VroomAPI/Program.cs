@@ -1,4 +1,4 @@
-using HealthChecks.UI.Client;
+ï»¿using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -47,7 +47,7 @@ builder.Services.AddHealthChecksUI(opt =>
 {
     opt.SetEvaluationTimeInSeconds(5);
     opt.MaximumHistoryEntriesPerEndpoint(10);
-    opt.AddHealthCheckEndpoint("API Health Check", "/health");
+    opt.AddHealthCheckEndpoint("API Health Check", "http://localhost:5189/health");
 }).AddInMemoryStorage();
 
 builder.Services.AddScoped<ITagService, TagService>();
@@ -58,24 +58,24 @@ builder.Services.AddScoped<ApiKeyAuthFilter>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => {
-    c.SwaggerDoc("v1.0", new OpenApiInfo 
-    { 
-        Title = "VroomAPI", 
+    c.SwaggerDoc("v1.0", new OpenApiInfo
+    {
+        Title = "VroomAPI",
         Version = "v1.0",
-        Description = "Documentação VroomAPI v1.0 (Deprecated)",
+        Description = "DocumentaÃ§Ã£o VroomAPI v1.0 (Deprecated)",
     });
-    
-    c.SwaggerDoc("v2.0", new OpenApiInfo 
-    { 
-        Title = "VroomAPI", 
+
+    c.SwaggerDoc("v2.0", new OpenApiInfo
+    {
+        Title = "VroomAPI",
         Version = "v2.0",
-        Description = "Documentação VroomAPI v2.0",
+        Description = "DocumentaÃ§Ã£o VroomAPI v2.0",
     });
 
     c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
     {
         Description = "Enter your API Key",
-        Name = "X-Api-Key", 
+        Name = "X-Api-Key",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "ApiKeyScheme"
@@ -117,6 +117,8 @@ builder.Services.AddApiVersioning(options =>
     options.SubstituteApiVersionInUrl = true;
 });
 
+builder.WebHost.UseUrls("http://0.0.0.0:5189");
+
 var app = builder.Build();
 
 app.MapHealthChecks("/health", new HealthCheckOptions
@@ -136,7 +138,7 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/swagger/v2.0/swagger.json", "VroomAPI v2.0");
         c.SwaggerEndpoint("/swagger/v1.0/swagger.json", "VroomAPI v1.0 (Deprecated)");
-        c.DocumentTitle = "VroomAPI - Documentação";
+        c.DocumentTitle = "VroomAPI - DocumentaÃ§Ã£o";
     });
 }
 
