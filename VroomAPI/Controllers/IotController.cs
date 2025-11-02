@@ -19,12 +19,10 @@ namespace VroomAPI.Controllers
     public class IotController : ControllerBase
     {
         private readonly IIotService _eventoService;
-        private readonly IHttpClientFactory _httpClientFactory;
 
-        public IotController(IIotService eventoService, IHttpClientFactory httpClientFactory)
+        public IotController(IIotService eventoService)
         {
             _eventoService = eventoService;
-            _httpClientFactory = httpClientFactory;
         }
 
         /// <summary>
@@ -75,7 +73,7 @@ namespace VroomAPI.Controllers
                 return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
             }
 
-            var response = CreatePagedResponse(result.Value, page, pageSize);
+            var response = CreatePagedResponse(result.Value);
             AddCollectionLinks(response, page, pageSize);
 
             return Ok(response);
@@ -94,7 +92,7 @@ namespace VroomAPI.Controllers
             return Ok("Comando enviado!");
         }
 
-        private PagedResponse<EventoIotDto> CreatePagedResponse(PagedList<EventoIotDto> pagedList, int page, int pageSize)
+        private PagedResponse<EventoIotDto> CreatePagedResponse(PagedList<EventoIotDto> pagedList)
         {
             var response = new PagedResponse<EventoIotDto>
             {

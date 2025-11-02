@@ -32,7 +32,7 @@ namespace VroomAPI.Test
             _client.DefaultRequestHeaders.Add("X-Api-Key", _apiKey);
 
             //Act
-            var response = await _client.GetAsync("/moto");
+            var response = await _client.GetAsync("v2/moto");
 
             //Assert
             var motos = await response.Content.ReadFromJsonAsync<PagedResponse<MotoDto>>();
@@ -56,7 +56,7 @@ namespace VroomAPI.Test
             };
 
             //Act
-            var response = await _client.PostAsJsonAsync<CreateMotoDto>("/moto", motoDto);
+            var response = await _client.PostAsJsonAsync<CreateMotoDto>("v2/moto", motoDto);
 
             //Assert
             response.EnsureSuccessStatusCode();

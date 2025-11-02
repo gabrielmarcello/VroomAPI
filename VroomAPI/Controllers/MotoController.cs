@@ -84,7 +84,7 @@ namespace VroomAPI.Controllers {
                 return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
             }
 
-            var response = CreatePagedResponse(result.Value, page, pageSize);
+            var response = CreatePagedResponse(result.Value);
             AddCollectionLinks(response, page, pageSize);
 
             return Ok(response);
@@ -147,7 +147,7 @@ namespace VroomAPI.Controllers {
             return NoContent();
         }
 
-        private PagedResponse<MotoDto> CreatePagedResponse(PagedList<MotoDto> pagedList, int page, int pageSize)
+        private PagedResponse<MotoDto> CreatePagedResponse(PagedList<MotoDto> pagedList)
         {
             var response = new PagedResponse<MotoDto>
             {
