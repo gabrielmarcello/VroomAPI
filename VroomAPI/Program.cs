@@ -5,11 +5,13 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using VroomAPI.Authentication;
+using VroomAPI.Configuration;
 using VroomAPI.Data;
 using VroomAPI.Interface;
 using VroomAPI.Mappings;
 using VroomAPI.Service;
 using Asp.Versioning;
+using VroomAPI.Service.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,13 @@ var connectionString = builder.Configuration.GetConnectionString("OracleConnecti
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseOracle(connectionString));
+
+var rabbitMqConfig = new RabbitMqConfiguration();
+builder.Configuration.GetSection(RabbitMqConfiguration.SectionName).Bind(rabbitMqConfig);
+builder.Services.AddSingleton(rabbitMqConfig);
+
+builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
+builder.Services.AddHostedService<EventoIotConsumerService>();
 
 builder.Services.AddCors(options =>
 {

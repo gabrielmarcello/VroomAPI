@@ -9,6 +9,7 @@ using VroomAPI.DTOs;
 using VroomAPI.Helpers;
 using VroomAPI.Interface;
 using VroomAPI.Model;
+using VroomAPI.Service.RabbitMQ;
 
 namespace VroomAPI.Service
 {
@@ -20,20 +21,51 @@ namespace VroomAPI.Service
         private readonly AppDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IRabbitMqPublisher _rabbitMqPublisher;
 
-        public IotService(AppDbContext dbContext, IMapper mapper, IHttpClientFactory httpClientFactory)
+        public IotService(AppDbContext dbContext, IMapper mapper, IHttpClientFactory httpClientFactory, IRabbitMqPublisher rabbitMqPublisher)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _httpClientFactory = httpClientFactory;
+            _rabbitMqPublisher = rabbitMqPublisher;
         }
 
         /// <summary>
-        /// Cria um novo evento IoT
+        /// Cria um novo evento IoT enviando para RabbitMQ (processamento assíncrono)
+        /// </summary>
+        /// <param name="createEventoDto">Dados para criação do evento</param>
+        /// <returns>Resultado da operação</returns>
+        public async Task<Result<EventoIotDto>> CreateEvento(CreateEventoIotDto createEventoDto)
+        {
+            try
+            {
+                await _rabbitMqPublisher.PublishEventoIotAsync(createEventoDto);
+                
+                var eventoDto = new EventoIotDto
+                {
+                    Id = 0,
+                    IdTag = createEventoDto.IdTag,
+                    Timestamp = createEventoDto.Timestamp,
+                    LedOn = createEventoDto.LedOn,
+                    Problema = createEventoDto.Problema,
+                    Cor = createEventoDto.Cor
+                };
+                
+                return Result<EventoIotDto>.Success(eventoDto);
+            }
+            catch (Exception)
+            {
+                return Result<EventoIotDto>.Failure(new Error("PUBLISH_EVENTO_FAILED", $"Falha ao enviar evento para processamento"));
+            }
+        }
+
+        /// <summary>
+        /// Cria um novo evento IoT diretamente no banco de dados (usado pelo consumer RabbitMQ)
         /// </summary>
         /// <param name="createEventoDto">Dados para criação do evento</param>
         /// <returns>Resultado da operação com o evento criado</returns>
-        public async Task<Result<EventoIotDto>> CreateEvento(CreateEventoIotDto createEventoDto)
+        public async Task<Result<EventoIotDto>> CreateEventoDirectly(CreateEventoIotDto createEventoDto)
         {
             try
             {
@@ -47,10 +79,15 @@ namespace VroomAPI.Service
             }
             catch (Exception)
             {
-                return Result<EventoIotDto>.Failure(new Error("CREATE_EVENTO_FAILED", "Falha ao criar evento"));
+                return Result<EventoIotDto>.Failure(new Error("CREATE_EVENTO_FAILED", $"Falha ao criar evento"));
             }
         }
 
+        /// <summary>
+        /// Envia um comando para o Node-RED
+        /// </summary>
+        /// <param name="command">Dados do comando a ser enviado</param>
+        /// <returns>Resultado da operação</returns>
         public async Task<Result> SendCommandAsync(LedCommandDto command)
         {
             var client = _httpClientFactory.CreateClient();
@@ -68,6 +105,12 @@ namespace VroomAPI.Service
             return Result.Success();
         }
 
+        /// <summary>
+        /// Obtém uma lista paginada de eventos IoT
+        /// </summary>
+        /// <param name="page">Número da página</param>
+        /// <param name="pageSize">Tamanho da página</param>
+        /// <returns>Resultado com a lista paginada de eventos</returns>
         public async Task<Result<PagedList<EventoIotDto>>> GetAllEventosPaged(int page, int pageSize)
         {
             try

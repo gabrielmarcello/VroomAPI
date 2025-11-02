@@ -28,17 +28,15 @@ namespace VroomAPI.Controllers
         }
 
         /// <summary>
-        /// Recebe e registra eventos IoT no histórico do sistema
+        /// Recebe e registra eventos IoT no histórico do sistema de forma assíncrona usando RabbitMQ
         /// </summary>
         /// <param name="createEventoDto">Dados do evento IoT contendo informações da tag e coordenadas</param>
-        /// <returns>Evento IoT registrado com sucesso</returns>
-        /// <response code="200">Evento IoT registrado com sucesso</response>
+        /// <returns>Confirmação de que o evento foi aceito para processamento</returns>
+        /// <response code="202">Evento IoT aceito para processamento assíncrono</response>
         /// <response code="400">Dados inválidos fornecidos ou erro de validação</response>
-        /// <response code="404">Tag especificada não foi encontrada</response>
         [HttpPost("historico")]
-        [ProducesResponseType(typeof(EventoIotDto), 200)]
+        [ProducesResponseType(202)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> RecebeIot([FromBody] CreateEventoIotDto createEventoDto)
         {
             if (!ModelState.IsValid) { 
@@ -48,13 +46,14 @@ namespace VroomAPI.Controllers
             var result = await _eventoService.CreateEvento(createEventoDto);
 
             if (result.IsFailure) {
-                return result.Error.Code == "TAG_NOT_FOUND" 
-                    ? NotFound(new { message = result.Error.Description })
-                    : BadRequest(new { message = result.Error.Description });
+                return BadRequest(new { message = result.Error.Description });
             }
 
-            AddHateoasLinks(result.Value);
-            return Ok(result.Value);
+            return Accepted(new { 
+                message = "Evento IoT aceito e enviado para processamento assíncrono",
+                idTag = createEventoDto.IdTag,
+                timestamp = createEventoDto.Timestamp
+            });
         }
 
         /// <summary>
