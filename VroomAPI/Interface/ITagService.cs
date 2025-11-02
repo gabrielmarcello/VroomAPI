@@ -7,6 +7,7 @@ namespace VroomAPI.Interface {
         Task<Result<TagDto>> CreateTag(CreateTagDto createTagDto);
         Task<Result<TagDto>> GetTagById(int id);
         Task<Result<PagedList<TagDto>>> GetAllTagsPaged(int page, int pageSize);
+        Task<Result<IEnumerable<TagDto>>> GetAllTags();
         Task<Result<TagDto>> UpdateTag(int id, UpdateTagDto updateTagDto);
         Task<Result> DeleteTag(int id);
     }

@@ -5,7 +5,7 @@ namespace VroomAPI.DTOs
     public class CreateEventoIotDto
     {
         [Required(ErrorMessage = "O ID da tag é obrigatório")]
-        public int IdTag { get; set; }
+        public string IdTag { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "O timestamp é obrigatório")]
         public string Timestamp { get; set; } = string.Empty;

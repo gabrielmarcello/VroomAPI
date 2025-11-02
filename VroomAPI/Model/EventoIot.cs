@@ -7,7 +7,7 @@ namespace VroomAPI.Model
         [Key]
         public int Id { get; set; }
         
-        public int IdTag { get; set; }
+        public string IdTag { get; set; }
         
         public string Timestamp { get; set; }
         public bool LedOn { get; set; }

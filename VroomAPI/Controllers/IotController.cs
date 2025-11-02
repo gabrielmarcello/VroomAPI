@@ -1,34 +1,42 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc;
+using System.Text;
+using System.Text.Json;
+using VroomAPI.Authentication;
 using VroomAPI.DTOs;
-using VroomAPI.Interface;
+using VroomAPI.Model;
 using VroomAPI.Helpers;
+using VroomAPI.Interface;
 
 namespace VroomAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
+    [ApiVersion("1.0", Deprecated = true)]
     [Tags("IoT")]
+    [ServiceFilter(typeof(ApiKeyAuthFilter))]
     public class IotController : ControllerBase
     {
-        private readonly IEventoService _eventoService;
+        private readonly IIotService _eventoService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public IotController(IEventoService eventoService)
+        public IotController(IIotService eventoService, IHttpClientFactory httpClientFactory)
         {
             _eventoService = eventoService;
+            _httpClientFactory = httpClientFactory;
         }
 
         /// <summary>
-        /// Recebe e registra eventos IoT no histórico do sistema
+        /// Recebe e registra eventos IoT no histórico do sistema de forma assíncrona usando RabbitMQ
         /// </summary>
         /// <param name="createEventoDto">Dados do evento IoT contendo informações da tag e coordenadas</param>
-        /// <returns>Evento IoT registrado com sucesso</returns>
-        /// <response code="200">Evento IoT registrado com sucesso</response>
+        /// <returns>Confirmação de que o evento foi aceito para processamento</returns>
+        /// <response code="202">Evento IoT aceito para processamento assíncrono</response>
         /// <response code="400">Dados inválidos fornecidos ou erro de validação</response>
-        /// <response code="404">Tag especificada não foi encontrada</response>
-        [HttpPost("/historico")]
-        [ProducesResponseType(typeof(EventoIotDto), 200)]
+        [HttpPost("historico")]
+        [ProducesResponseType(202)]
         [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> RecebeIot([FromBody] CreateEventoIotDto createEventoDto)
         {
             if (!ModelState.IsValid) { 
@@ -38,13 +46,14 @@ namespace VroomAPI.Controllers
             var result = await _eventoService.CreateEvento(createEventoDto);
 
             if (result.IsFailure) {
-                return result.Error.Code == "TAG_NOT_FOUND" 
-                    ? NotFound(new { message = result.Error.Description })
-                    : BadRequest(new { message = result.Error.Description });
+                return BadRequest(new { message = result.Error.Description });
             }
 
-            AddHateoasLinks(result.Value);
-            return Ok(result.Value);
+            return Accepted(new { 
+                message = "Evento IoT aceito e enviado para processamento assíncrono",
+                idTag = createEventoDto.IdTag,
+                timestamp = createEventoDto.Timestamp
+            });
         }
 
         /// <summary>
@@ -72,6 +81,19 @@ namespace VroomAPI.Controllers
             return Ok(response);
         }
 
+        [HttpPost("set")]
+        public async Task<IActionResult> SetLed([FromBody] LedCommandDto command)
+        {
+            var result = await _eventoService.SendCommandAsync(command);
+
+            if (result.IsFailure)
+            {
+                return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
+            }
+
+            return Ok("Comando enviado!");
+        }
+
         private PagedResponse<EventoIotDto> CreatePagedResponse(PagedList<EventoIotDto> pagedList, int page, int pageSize)
         {
             var response = new PagedResponse<EventoIotDto>
@@ -94,22 +116,24 @@ namespace VroomAPI.Controllers
         private void AddHateoasLinks(EventoIotDto evento)
         {
             var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            var version = HttpContext.GetRequestedApiVersion()?.ToString() ?? "2.0";
             
-            evento.AddSelfLink(baseUrl, "historico", evento.Id);
-            evento.AddCollectionLink(baseUrl, "Iot");
+            evento.AddSelfLink(baseUrl, $"v{version}/historico", evento.Id);
+            evento.AddCollectionLink(baseUrl, $"v{version}/Iot");
         }
 
         private void AddCollectionLinks(PagedResponse<EventoIotDto> response, int page, int pageSize)
         {
             var baseUrl = HateoasHelper.GetBaseUrl(HttpContext);
+            var version = HttpContext.GetRequestedApiVersion()?.ToString() ?? "2.0";
             
-            response.AddSelfLink($"{baseUrl}/Iot?page={page}&pageSize={pageSize}");
+            response.AddSelfLink($"{baseUrl}/v{version}/Iot?page={page}&pageSize={pageSize}");
             
             if (response.HasNext)
-                response.AddLink($"{baseUrl}/Iot?page={page + 1}&pageSize={pageSize}", "next");
+                response.AddLink($"{baseUrl}/v{version}/Iot?page={page + 1}&pageSize={pageSize}", "next");
             
             if (response.HasPrevious)
-                response.AddLink($"{baseUrl}/Iot?page={page - 1}&pageSize={pageSize}", "prev");
+                response.AddLink($"{baseUrl}/v{version}/Iot?page={page - 1}&pageSize={pageSize}", "prev");
         }
     }
 }

@@ -21,6 +21,7 @@ namespace VroomAPI.Mappings
             
             CreateMap<EventoIot, EventoIotDto>();
             CreateMap<CreateEventoIotDto, EventoIot>();
+            CreateMap<EventoIot, CreateEventoIotDto>();
         }
     }
 }

@@ -75,6 +75,24 @@ namespace VroomAPI.Service {
             }
         }
 
+        public async Task<Result<IEnumerable<MotoDto>>> GetAllMotos()
+        {
+            try
+            {
+                var motos = await _dbContext.motos
+                    .Include(m => m.Tag)
+                    .ToListAsync();
+
+                var motosDto = _mapper.Map<List<MotoDto>>(motos);
+
+                return Result<IEnumerable<MotoDto>>.Success(motosDto);
+            }
+            catch (Exception)
+            {
+                return Result<IEnumerable<MotoDto>>.Failure(new Error("Falha ao buscar todas as motos"));
+            }
+        }
+
         public async Task<Result<MotoDto>> UpdateMoto(int id, UpdateMotoDto updateMotoDto) {
             try {
                 var existingMoto = await _dbContext.motos.FindAsync(id);

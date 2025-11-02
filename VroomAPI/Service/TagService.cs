@@ -63,6 +63,22 @@ namespace VroomAPI.Service {
             }
         }
 
+        public async Task<Result<IEnumerable<TagDto>>> GetAllTags()
+        {
+            try
+            {
+                var tags = await _dbContext.tags.ToListAsync();
+
+                var tagsDto = _mapper.Map<List<TagDto>>(tags);
+
+                return Result<IEnumerable<TagDto>>.Success(tagsDto);
+            }
+            catch (Exception)
+            {
+                return Result<IEnumerable<TagDto>>.Failure(new Error("Falha ao buscar todas as tags"));
+            }
+        }
+
         public async Task<Result<TagDto>> UpdateTag(int id, UpdateTagDto updateTagDto) {
             try {
                 var existingTag = await _dbContext.tags.FindAsync(id);

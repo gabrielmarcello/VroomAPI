@@ -1,7 +1,11 @@
 # Vroom API
-![.Net](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white) 
+<img width="3300" height="732" alt="image" src="https://github.com/user-attachments/assets/12efe86e-1297-4688-8bce-d977d5f4261c" />
 
-Esse é o projeto Vroom para o Challenge FIAP 2025, onde os usuários podem registrar motos, tags e manipular as tags comunicando com o IOT
+Essa é a Vroom, projeto finalista para o Challenge FIAP 2025 do curso de Análise e Desenvolvimento de Sistemas, onde os usuários podem registrar motos, tags e manipular as tags comunicando com o IOT
+
+&nbsp;
+
+![.Net](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white) 
 
 ## Funcionalidades
 
@@ -392,6 +396,83 @@ O projeto utiliza:
 - **Entity Framework Core** - ORM
 - **AutoMapper** - Mapeamento de objetos
 - **Swagger/OpenAPI** - Documentação da API
+```mermaid
+graph TB
+    subgraph "Clientes"
+        Client["Cliente HTTP<br/>(Mobile/Web)"]
+        IoTDevice["Dispositivos IoT"]
+    end
+    
+    subgraph "Camada de Apresentação"
+        API["Controllers<br/>- TagController<br/>- MotoController<br/>- IotController"]
+        Auth["Middleware<br/>- API Key Auth<br/>- CORS"]
+    end
+    
+    subgraph "Camada de Negócio"
+        Services["Services<br/>- TagService<br/>- MotoService<br/>- IotService"]
+    end
+    
+    subgraph "Camada de Dados"
+        EF["Entity Framework Core<br/>(AppDbContext)"]
+        Models["Domain Models<br/>- Tag<br/>- Moto<br/>- EventoIot"]
+    end
+    
+    subgraph "Infraestrutura"
+        DB["Oracle Database"]
+        NodeRed["Node-RED API<br/>(Controle LED)"]
+    end
+    
+    subgraph "Cross-Cutting"
+        Patterns["Padrões & Helpers<br/>- Result Pattern<br/>- HATEOAS<br/>- Paginação<br/>- AutoMapper<br/>- Versionamento API"]
+    end
+    
+    Client -->|HTTP Requests| Auth
+    IoTDevice -->|HTTP Requests| Auth
+    Auth --> API
+    API --> Services
+    Services --> EF
+    EF --> Models
+    Models --> DB
+    Services -.->|Comandos LED| NodeRed
+    
+    API -.->|Usa| Patterns
+    Services -.->|Usa| Patterns
+    
+    style API fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style Services fill:#2196F3,stroke:#1565C0,color:#fff
+    style EF fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style DB fill:#F44336,stroke:#C62828,color:#fff
+    style NodeRed fill:#FF9800,stroke:#E65100,color:#fff
+    style Patterns fill:#607D8B,stroke:#37474F,color:#fff
+```
+
+```mermaid
+erDiagram
+	direction TB
+	tags {
+		int Id PK "Identity"  
+		nvarchar2_50 Coordenada  "NOT NULL"  
+		number_3 Disponivel  "0=Indisponível, 1=Disponível"  
+	}
+	motos {
+		int Id PK "Identity"  
+		nvarchar2_8 Placa  "NOT NULL, Max 8 chars"  
+		nvarchar2_17 Chassi  "NOT NULL, Max 17 chars"  
+		nvarchar2_500 DescricaoProblema  "NOT NULL, Max 500 chars"  
+		int ModeloMoto  "NOT NULL, Enum"  
+		int CategoriaProblema  "NOT NULL, Enum"  
+		int TagId FK "NOT NULL"  
+	}
+	eventos {
+		int Id PK "Identity"  
+		nvarchar2 IdTag  "NOT NULL"  
+		nvarchar2 Timestamp  "NOT NULL"  
+		int LedOn  "Boolean convertido para int"  
+		nvarchar2 Problema  "NOT NULL"  
+		int Cor  "0-255"  
+	}
+	tags ||--|| motos : "possui"
+```
 
 ### Justificativa da Arquitetura
 
