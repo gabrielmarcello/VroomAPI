@@ -38,6 +38,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddHttpClient();
 builder.Services.AddHealthChecks()
     .AddOracle(
         connectionString: connectionString,
@@ -62,6 +63,7 @@ builder.Services.AddHealthChecksUI(opt =>
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IMotoService, MotoService>();
 builder.Services.AddScoped<IIotService, IotService>();
+builder.Services.AddScoped<IMachineLearningService, MachineLearningService>();
 builder.Services.AddScoped<ApiKeyAuthFilter>();
 
 builder.Services.AddControllers();

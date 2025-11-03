@@ -1,4 +1,4 @@
-namespace VroomAPI.Models
+namespace VroomAPI.Model
 {
     public class Link
     {

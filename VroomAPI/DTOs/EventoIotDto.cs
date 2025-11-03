@@ -1,4 +1,4 @@
-using VroomAPI.Models;
+using VroomAPI.Model;
 
 namespace VroomAPI.DTOs
 {

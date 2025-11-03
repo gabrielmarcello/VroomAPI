@@ -1,6 +1,4 @@
-using VroomAPI.Models;
-
-namespace VroomAPI.Models
+namespace VroomAPI.Model
 {
     public class HateoasResource
     {

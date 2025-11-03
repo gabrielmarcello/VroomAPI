@@ -1,5 +1,5 @@
+using VroomAPI.Model;
 using VroomAPI.Model.Enum;
-using VroomAPI.Models;
 
 namespace VroomAPI.DTOs
 {

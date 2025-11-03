@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VroomAPI.Model;
 using VroomAPI.Models;
 
 namespace VroomAPI.Helpers

@@ -19,10 +19,12 @@ namespace VroomAPI.Controllers
     public class IotController : ControllerBase
     {
         private readonly IIotService _eventoService;
+        private readonly IMachineLearningService _mlService;
 
-        public IotController(IIotService eventoService)
+        public IotController(IIotService eventoService, IMachineLearningService mlService)
         {
             _eventoService = eventoService;
+            _mlService = mlService;
         }
 
         /// <summary>
@@ -90,6 +92,104 @@ namespace VroomAPI.Controllers
             }
 
             return Ok("Comando enviado!");
+        }
+
+        /// <summary>
+        /// Treina o modelo de Machine Learning com dados históricos de eventos IoT
+        /// </summary>
+        /// <returns>Confirmação do treinamento do modelo</returns>
+        /// <response code="200">Modelo treinado com sucesso</response>
+        /// <response code="400">Erro durante o treinamento ou dados insuficientes</response>
+        [HttpPost("ml/train")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> TrainModel()
+        {
+            var result = await _mlService.TrainModelAsync();
+
+            if (result.IsFailure)
+            {
+                return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
+            }
+
+            return Ok(new { message = "Modelo treinado com sucesso!" });
+        }
+
+        /// <summary>
+        /// Prediz a categoria de um problema usando ML.NET baseado em dados do evento IoT
+        /// </summary>
+        /// <param name="predictDto">Dados do evento para predição</param>
+        /// <returns>Categoria predita e nível de confiança</returns>
+        /// <response code="200">Predição realizada com sucesso</response>
+        /// <response code="400">Erro na predição ou modelo não treinado</response>
+        [HttpPost("ml/predict")]
+        [ProducesResponseType(typeof(PredictProblemaResponseDto), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> PredictCategoria([FromBody] PredictProblemaDto predictDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _mlService.PredictCategoriaAsync(predictDto);
+
+            if (result.IsFailure)
+            {
+                return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
+            }
+
+            var prediction = result.Value;
+            var response = new PredictProblemaResponseDto
+            {
+                PredictedCategory = prediction.CategoryName,
+                CategoryId = prediction.PredictedCategory,
+                Confidence = prediction.Confidence,
+                Message = $"Categoria predita: {prediction.CategoryName} com {prediction.Confidence:P2} de confiança"
+            };
+
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Obtém métricas do modelo de Machine Learning treinado
+        /// </summary>
+        /// <returns>Métricas de performance do modelo</returns>
+        /// <response code="200">Métricas retornadas com sucesso</response>
+        /// <response code="400">Modelo não treinado ou erro ao obter métricas</response>
+        [HttpGet("ml/metrics")]
+        [ProducesResponseType(typeof(ModelMetrics), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> GetModelMetrics()
+        {
+            var result = await _mlService.GetModelMetricsAsync();
+
+            if (result.IsFailure)
+            {
+                return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
+            }
+
+            return Ok(result.Value);
+        }
+
+        /// <summary>
+        /// Verifica o status do modelo de Machine Learning
+        /// </summary>
+        /// <returns>Status indicando se o modelo está treinado</returns>
+        /// <response code="200">Status do modelo retornado</response>
+        [HttpGet("ml/status")]
+        [ProducesResponseType(200)]
+        public IActionResult GetModelStatus()
+        {
+            var isTrained = _mlService.IsModelTrained();
+            
+            return Ok(new 
+            { 
+                modelTrained = isTrained,
+                message = isTrained 
+                    ? "Modelo está treinado e pronto para uso" 
+                    : "Modelo não treinado. Execute POST /ml/train primeiro"
+            });
         }
 
         private PagedResponse<EventoIotDto> CreatePagedResponse(PagedList<EventoIotDto> pagedList)
