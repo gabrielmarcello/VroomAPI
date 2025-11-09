@@ -6,35 +6,41 @@ Essa é a Vroom, projeto finalista para o Challenge FIAP 2025 do curso de Análi
 &nbsp;
 
 ![.Net](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white) 
+![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
+![Oracle](https://img.shields.io/badge/Oracle-F80000?style=for-the-badge&logo=oracle&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 
 ## Funcionalidades
 
-- Registro de eventos IoT
-- Gerenciamento de motocicletas
-- Controle de tags de localização
-- Sistema de monitoramento e diagnóstico
+- **Registro de eventos IoT** com processamento assíncrono via RabbitMQ
+- **Gerenciamento de motocicletas** com categorização de problemas
+- **Controle de tags de localização** com coordenadas GPS
+- **Sistema de monitoramento e diagnóstico** com Health Checks
+- **Machine Learning** para predição de categorias de problemas
+- **API Versionada** (v1.0 e v2.0)
+- **HATEOAS** para navegação hipermídia
+- **Controle de LED** via Node-RED para dispositivos IoT
 
 # Documentação da API
 
-## IoT
-
-### /historico
-
-```http
-POST /historico
+## Base URL
+```
+http://localhost:5189/v2.0
 ```
 
-Recebe e processa um evento IoT
+## Autenticação
+Todas as requisições requerem autenticação via API Key no header:
+```
+X-Api-Key: sua-api-key-aqui
+```
 
-| Parâmetro   | Tipo      | Descrição                                    |
-| :---------- | :-------- | :------------------------------------------- |
-| `idTag`     | `integer` | **Obrigatório**. ID da tag associada        |
-| `timestamp` | `string`  | **Obrigatório**. Timestamp do evento        |
-| `ledOn`     | `boolean` | Indica se o LED está ligado                  |
-| `problema`  | `string`  | Descrição do problema detectado              |
-| `cor`       | `integer` | Código da cor do LED (0-255)                |
+## IoT
 
-**Exemplo de Request Body (JSON)**
+### POST /v2.0/Iot/historico
+
+Recebe e processa um evento IoT de forma assíncrona usando RabbitMQ
+
+**Request Body (JSON)**
 
 ```json
 {
@@ -46,21 +52,28 @@ Recebe e processa um evento IoT
 }
 ```
 
+**Parâmetros**
+
+| Parâmetro   | Tipo      | Descrição                                    |
+| :---------- | :-------- | :------------------------------------------- |
+| `idTag`     | `integer` | **Obrigatório**. ID da tag associada        |
+| `timestamp` | `string`  | **Obrigatório**. Timestamp do evento        |
+| `ledOn`     | `boolean` | Indica se o LED está ligado                  |
+| `problema`  | `string`  | Descrição do problema detectado              |
+| `cor`       | `integer` | Código da cor do LED (0-6)                |
+
 **Respostas**
 
 | Código | Descrição | Conteúdo |
 | :----- | :-------- | :---- |
-| `200`  | OK        | Evento IoT criado |
+| `202`  | Aceito    | Evento enviado para processamento assíncrono |
 | `400`  | Dados inválidos | Mensagem de erro |
-| `404`  | Tag não encontrada | Mensagem de erro |
 
-### /Iot
+### GET /v2.0/Iot
 
-```http
-GET /Iot
-```
+Retorna todos os eventos IoT com paginação e HATEOAS
 
-Retorna todos os eventos IoT com paginação
+**Query Parameters**
 
 | Parâmetro  | Tipo      | Descrição                          |
 | :--------- | :-------- | :--------------------------------- |
@@ -71,23 +84,107 @@ Retorna todos os eventos IoT com paginação
 
 | Código | Descrição | Conteúdo |
 | :----- | :-------- | :---- |
-| `200`  | OK        | Lista de eventos IoT |
+| `200`  | OK        | Lista paginada de eventos IoT com links HATEOAS |
+
+### POST /v2.0/Iot/set
+
+Envia comando para controlar o LED de uma tag IoT via Node-RED
+
+**Request Body (JSON)**
+
+```json
+{
+  "tagId": 1,
+  "ledOn": true
+}
+```
+
+**Respostas**
+
+| Código | Descrição | Conteúdo |
+| :----- | :-------- | :---- |
+| `200`  | OK        | Comando enviado com sucesso |
+| `400`  | Erro      | Mensagem de erro |
+
+### POST /v2.0/Iot/ml/train
+
+Treina o modelo de Machine Learning com dados históricos de eventos IoT
+
+**Respostas**
+
+| Código | Descrição | Conteúdo |
+| :----- | :-------- | :---- |
+| `200`  | OK        | Modelo treinado com sucesso |
+| `400`  | Erro      | Dados insuficientes ou erro no treinamento |
+
+### POST /v2.0/Iot/ml/predict
+
+Prediz a categoria de um problema usando ML.NET
+
+**Request Body (JSON)**
+
+```json
+{
+  "ledOn": true,
+  "cor": 1,
+  "problema": "Temperatura alta"
+}
+```
+
+**Respostas**
+
+| Código | Descrição | Conteúdo |
+| :----- | :-------- | :---- |
+| `200`  | OK        | Categoria predita com nível de confiança |
+| `400`  | Erro      | Modelo não treinado ou erro na predição |
+
+### GET /v2.0/Iot/ml/metrics
+
+Obtém métricas do modelo de Machine Learning treinado
+
+**Respostas**
+
+| Código | Descrição | Conteúdo |
+| :----- | :-------- | :---- |
+| `200`  | OK        | Métricas de performance do modelo |
+| `400`  | Erro      | Modelo não treinado |
+
+### GET /v2.0/Iot/ml/status
+
+Verifica o status do modelo de Machine Learning
+
+**Respostas**
+
+| Código | Descrição | Conteúdo |
+| :----- | :-------- | :---- |
+| `200`  | OK        | Status do modelo (treinado ou não) |
 
 ## Motocicletas
 
-### /Moto
-
-```http
-POST /Moto
-```
+### POST /v2.0/Moto
 
 Cria uma nova moto no sistema
 
+**Request Body (JSON)**
+
+```json
+{
+  "placa": "ABC-1234",
+  "chassi": "9BWZZZ377VT004251",
+  "descricaoProblema": "Motor fazendo ruído estranho",
+  "modeloMoto": 0,
+  "categoriaProblema": 0,
+  "tagId": 1
+}
+```
+
+**Parâmetros**
+
 | Parâmetro           | Tipo       | Descrição                               |
 | :------------------ | :--------- | :-------------------------------------- |
-| `placa`             | `string`   | **Obrigatório**. Placa da moto          |
-| `chassi`            | `string`   | **Obrigatório**. Número do chassi       |
-| `descricaoProblema` | `string`   | **Obrigatório**. Descrição do problema  |
+| `placa`             | `string`   | **Obrigatório**. Placa da moto (max 8 chars) |
+| `chassi`            | `string`   | **Obrigatório**. Número do chassi (max 17 chars) |
+| `descricaoProblema` | `string`   | **Obrigatório**. Descrição do problema (max 500 chars) |
 | `modeloMoto`        | `integer`  | **Obrigatório**. Modelo da moto (0-2)   |
 | `categoriaProblema` | `integer`  | **Obrigatório**. Categoria do problema (0-6) |
 | `tagId`             | `integer`  | **Obrigatório**. ID da tag associada    |
@@ -106,19 +203,6 @@ Cria uma nova moto no sistema
 - `5` - MULTIPLO
 - `6` - CONFORME
 
-**Exemplo de Request Body (JSON)**
-
-```json
-{
-  "placa": "ABC-1234",
-  "chassi": "9BWZZZ377VT004251",
-  "descricaoProblema": "Motor fazendo ruído estranho",
-  "modeloMoto": 0,
-  "categoriaProblema": 0,
-  "tagId": 1
-}
-```
-
 **Respostas**
 
 | Código | Descrição | Conteúdo |
@@ -126,13 +210,11 @@ Cria uma nova moto no sistema
 | `201`  | Criada    | Moto criada com sucesso |
 | `400`  | Dados inválidos | Mensagem de erro |
 
-### /Moto/{id}
-
-```http
-GET /Moto/{id}
-```
+### GET /v2.0/Moto/{id}
 
 Busca uma moto específica pelo ID
+
+**Path Parameters**
 
 | Parâmetro | Tipo      | Descrição                              |
 | :-------- | :-------- | :------------------------------------- |
@@ -142,16 +224,14 @@ Busca uma moto específica pelo ID
 
 | Código | Descrição | Conteúdo |
 | :----- | :-------- | :---- |
-| `200`  | OK        | Dados da moto |
+| `200`  | OK        | Dados da moto com links HATEOAS |
 | `404`  | Não encontrada | Mensagem de erro |
 
-### /Moto
+### GET /v2.0/Moto
 
-```http
-GET /Moto
-```
+Retorna todas as motos cadastradas no sistema com paginação
 
-Retorna todas as motos cadastradas no sistema
+**Query Parameters**
 
 | Parâmetro  | Tipo      | Descrição                          |
 | :--------- | :-------- | :--------------------------------- |
@@ -162,27 +242,19 @@ Retorna todas as motos cadastradas no sistema
 
 | Código | Descrição | Conteúdo |
 | :----- | :-------- | :---- |
-| `200`  | OK        | Lista de motos |
+| `200`  | OK        | Lista paginada de motos com links HATEOAS |
 
-### /Moto/{id}
-
-```http
-PUT /Moto/{id}
-```
+### PUT /v2.0/Moto/{id}
 
 Atualiza os dados de uma moto existente
 
-| Parâmetro           | Tipo       | Descrição                               |
-| :------------------ | :--------- | :-------------------------------------- |
-| `id`                | `integer`  | **Obrigatório**. ID da moto             |
-| `placa`             | `string`   | **Obrigatório**. Placa da moto          |
-| `chassi`            | `string`   | **Obrigatório**. Número do chassi       |
-| `descricaoProblema` | `string`  | **Obrigatório**. Descrição do problema  |
-| `modeloMoto`        | `integer`  | **Obrigatório**. Modelo da moto         |
-| `categoriaProblema` | `integer`  | **Obrigatório**. Categoria do problema  |
-| `tagId`             | `integer`  | **Obrigatório**. ID da tag associada    |
+**Path Parameters**
 
-**Exemplo de Request Body (JSON)**
+| Parâmetro | Tipo      | Descrição                              |
+| :-------- | :-------- | :------------------------------------- |
+| `id`      | `integer` | **Obrigatório**. ID da moto            |
+
+**Request Body (JSON)**
 
 ```json
 {
@@ -202,13 +274,11 @@ Atualiza os dados de uma moto existente
 | `200`  | OK        | Moto atualizada |
 | `404`  | Não encontrada | Mensagem de erro |
 
-### /Moto/{id}
-
-```http
-DELETE /Moto/{id}
-```
+### DELETE /v2.0/Moto/{id}
 
 Remove uma moto do sistema
+
+**Path Parameters**
 
 | Parâmetro | Tipo      | Descrição                                |
 | :-------- | :-------- | :--------------------------------------- |
@@ -223,20 +293,11 @@ Remove uma moto do sistema
 
 ## Tags de Localização
 
-### /Tag
-
-```http
-POST /Tag
-```
+### POST /v2.0/Tag
 
 Cria uma nova tag no sistema
 
-| Parâmetro    | Tipo     | Descrição                                    |
-| :----------- | :------- | :------------------------------------------- |
-| `coordenada` | `string` | **Obrigatório**. Coordenadas (lat,long)     |
-| `disponivel` | `byte`   | **Obrigatório**. Status (0=indisponível, 1=disponível) |
-
-**Exemplo de Request Body (JSON)**
+**Request Body (JSON)**
 
 ```json
 {
@@ -245,6 +306,13 @@ Cria uma nova tag no sistema
 }
 ```
 
+**Parâmetros**
+
+| Parâmetro    | Tipo     | Descrição                                    |
+| :----------- | :------- | :------------------------------------------- |
+| `coordenada` | `string` | **Obrigatório**. Coordenadas GPS (lat,long) (max 50 chars) |
+| `disponivel` | `byte`   | **Obrigatório**. Status (0=indisponível, 1=disponível) |
+
 **Respostas**
 
 | Código | Descrição | Conteúdo |
@@ -252,13 +320,11 @@ Cria uma nova tag no sistema
 | `201`  | Criada    | Tag criada com sucesso |
 | `400`  | Dados inválidos | Mensagem de erro |
 
-### /Tag/{id}
-
-```http
-GET /Tag/{id}
-```
+### GET /v2.0/Tag/{id}
 
 Busca uma tag específica pelo ID
+
+**Path Parameters**
 
 | Parâmetro | Tipo      | Descrição                              |
 | :-------- | :-------- | :------------------------------------- |
@@ -268,16 +334,14 @@ Busca uma tag específica pelo ID
 
 | Código | Descrição | Conteúdo |
 | :----- | :-------- | :---- |
-| `200`  | OK        | Dados da tag |
+| `200`  | OK        | Dados da tag com links HATEOAS |
 | `404`  | Não encontrada | Mensagem de erro |
 
-### /Tag
+### GET /v2.0/Tag
 
-```http
-GET /Tag
-```
+Retorna todas as tags cadastradas no sistema com paginação
 
-Retorna todas as tags cadastradas no sistema
+**Query Parameters**
 
 | Parâmetro  | Tipo      | Descrição                          |
 | :--------- | :-------- | :--------------------------------- |
@@ -288,23 +352,19 @@ Retorna todas as tags cadastradas no sistema
 
 | Código | Descrição | Conteúdo |
 | :----- | :-------- | :---- |
-| `200`  | OK        | Lista de tags |
+| `200`  | OK        | Lista paginada de tags com links HATEOAS |
 
-### /Tag/{id}
-
-```http
-PUT /Tag/{id}
-```
+### PUT /v2.0/Tag/{id}
 
 Atualiza os dados de uma tag existente
 
-| Parâmetro    | Tipo      | Descrição                                    |
-| :----------- | :-------- | :------------------------------------------- |
-| `id`         | `integer` | **Obrigatório**. ID da tag                   |
-| `coordenada` | `string`  | **Obrigatório**. Coordenadas (lat,long)     |
-| `disponivel` | `byte`    | **Obrigatório**. Status (0=indisponível, 1=disponível) |
+**Path Parameters**
 
-**Exemplo de Request Body (JSON)**
+| Parâmetro | Tipo      | Descrição                              |
+| :-------- | :-------- | :------------------------------------- |
+| `id`      | `integer` | **Obrigatório**. ID da tag             |
+
+**Request Body (JSON)**
 
 ```json
 {
@@ -320,13 +380,11 @@ Atualiza os dados de uma tag existente
 | `200`  | OK        | Tag atualizada |
 | `404`  | Não encontrada | Mensagem de erro |
 
-### /Tag/{id}
-
-```http
-DELETE /Tag/{id}
-```
+### DELETE /v2.0/Tag/{id}
 
 Remove uma tag do sistema
+
+**Path Parameters**
 
 | Parâmetro | Tipo      | Descrição                                |
 | :-------- | :-------- | :--------------------------------------- |
@@ -339,9 +397,25 @@ Remove uma tag do sistema
 | `204`  | Removida com sucesso |
 | `404`  | Não encontrada |
 
+## Health Checks
+
+### GET /health
+
+Endpoint de health check para monitoramento da API
+
+**Respostas**
+
+| Código | Descrição | Conteúdo |
+| :----- | :-------- | :---- |
+| `200`  | Healthy   | Status de todos os componentes (DB, Node-RED) |
+
+### GET /health-dashboard
+
+Dashboard visual para monitoramento da saúde da aplicação
+
 ## Variáveis de Ambiente
 
-Para rodar esse projeto, você vai precisar adicionar as seguintes variáveis de ambiente no appsettings.json
+Para rodar esse projeto, você vai precisar adicionar as seguintes variáveis de ambiente no `appsettings.json`
 
 ```json
 {
@@ -349,53 +423,88 @@ Para rodar esse projeto, você vai precisar adicionar as seguintes variáveis de
     "OracleConnection": "Data Source=seuBanco;User Id=seuRM;Password=suaSenha"
   },
   "Authentication": {
-    "ApiKey": "sua-api-key-aqui"
+    "ApiKey": "minha-api-key"
+  },
+  "RabbitMQ": {
+    "HostName": "localhost",
+    "Port": 5672,
+    "UserName": "guest",
+    "Password": "guest",
+    "EventoIotQueueName": "evento_iot_queue",
+    "EventoIotExchangeName": "evento_iot_exchange",
+    "EventoIotRoutingKey": "evento_iot"
   }
 }
 ```
 
 ## Como Executar
 
+### Pré-requisitos
+
+- .NET 8.0 SDK
+- Oracle Database
+- RabbitMQ Server
+- Node-RED
+
+### Instalação
+
 1. **Clone o repositório**
 ```bash
 git clone https://github.com/gabrielmarcello/VroomAPI.git
-cd \VroomAPI\VroomAPI
+cd VroomAPI\VroomAPI
 ```
 
 2. **Configure a string de conexão**
-   - Edite o `appsettings.json` com suas credenciais do Oracle
+   - Edite o `appsettings.json` com suas credenciais do Oracle e RabbitMQ
 
 3. **Instale as dependências**
 ```bash
 dotnet restore
 ```
 
-4. **Configure o banco de dados**
+4. **Configure o RabbitMQ**
+   - Instale e inicie o RabbitMQ Server
+   - Acesse o management console: `http://localhost:15672`
+   - Credenciais padrão: guest/guest
+
+5. **Configure o banco de dados**
 ```bash
 dotnet tool install --global dotnet-ef
-
-cd .\VroomAPI\
 
 dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
 
-5. **Execute a aplicação**
+6. **Execute a aplicação**
 ```bash
 dotnet run
 ```
 
-6. **Acesse a API**
+7. **Acesse a API**
    - Swagger: `http://localhost:5189/swagger`
+   - Health Dashboard: `http://localhost:5189/health-dashboard`
+   - Health Check: `http://localhost:5189/health`
+
+## Executar Testes
+
+```bash
+cd VroomAPI.Test
+dotnet test
+```
 
 ## Arquitetura
 
 O projeto utiliza:
-- **ASP.NET Core** - Framework principal
+- **ASP.NET Core 8.0** - Framework principal
 - **Oracle Database** - Banco de dados
 - **Entity Framework Core** - ORM
+- **RabbitMQ** - Message Broker para processamento assíncrono
+- **ML.NET** - Machine Learning para predição de problemas
 - **AutoMapper** - Mapeamento de objetos
 - **Swagger/OpenAPI** - Documentação da API
+- **Health Checks** - Monitoramento da aplicação
+- **API Versioning** - Versionamento da API (v1.0 e v2.0)
+
 ```mermaid
 graph TB
     subgraph "Clientes"
@@ -406,15 +515,25 @@ graph TB
     subgraph "Camada de Apresentação"
         API["Controllers<br/>- TagController<br/>- MotoController<br/>- IotController"]
         Auth["Middleware<br/>- API Key Auth<br/>- CORS"]
+        Swagger["Swagger/OpenAPI<br/>v1.0 & v2.0"]
+        Health["Health Checks<br/>- Oracle DB<br/>- Node-RED"]
     end
     
     subgraph "Camada de Negócio"
-        Services["Services<br/>- TagService<br/>- MotoService<br/>- IotService"]
+        Services["Services<br/>- TagService<br/>- MotoService<br/>- IotService<br/>- MLService"]
+        ML["ML.NET<br/>- Training<br/>- Prediction<br/>- Metrics"]
+    end
+    
+    subgraph "Mensageria Assíncrona"
+        RabbitMQ["RabbitMQ"]
+        Publisher["RabbitMQ Publisher"]
+        Consumer["IoT Consumer Service"]
     end
     
     subgraph "Camada de Dados"
         EF["Entity Framework Core<br/>(AppDbContext)"]
         Models["Domain Models<br/>- Tag<br/>- Moto<br/>- EventoIot"]
+        MLModels["ML Models<br/>- EventoIotData<br/>- ProblemaPrediction<br/>- ModelMetrics"]
     end
     
     subgraph "Infraestrutura"
@@ -430,13 +549,21 @@ graph TB
     IoTDevice -->|HTTP Requests| Auth
     Auth --> API
     API --> Services
+    Services --> ML
+    Services --> Publisher
+    Publisher --> RabbitMQ
+    RabbitMQ --> Consumer
+    Consumer --> EF
     Services --> EF
     EF --> Models
     Models --> DB
+    ML --> MLModels
     Services -.->|Comandos LED| NodeRed
     
     API -.->|Usa| Patterns
     Services -.->|Usa| Patterns
+    API -.->|Expõe| Swagger
+    API -.->|Monitora| Health
     
     style API fill:#4CAF50,stroke:#2E7D32,color:#fff
     style Services fill:#2196F3,stroke:#1565C0,color:#fff
@@ -444,34 +571,35 @@ graph TB
     style DB fill:#F44336,stroke:#C62828,color:#fff
     style NodeRed fill:#FF9800,stroke:#E65100,color:#fff
     style Patterns fill:#607D8B,stroke:#37474F,color:#fff
+    style RabbitMQ fill:#FF6600,stroke:#CC5200,color:#fff
+    style ML fill:#00BCD4,stroke:#0097A7,color:#fff
 ```
 
 ```mermaid
 erDiagram
-	direction TB
-	tags {
-		int Id PK "Identity"  
-		nvarchar2_50 Coordenada  "NOT NULL"  
-		number_3 Disponivel  "0=Indisponível, 1=Disponível"  
-	}
-	motos {
-		int Id PK "Identity"  
-		nvarchar2_8 Placa  "NOT NULL, Max 8 chars"  
-		nvarchar2_17 Chassi  "NOT NULL, Max 17 chars"  
-		nvarchar2_500 DescricaoProblema  "NOT NULL, Max 500 chars"  
-		int ModeloMoto  "NOT NULL, Enum"  
-		int CategoriaProblema  "NOT NULL, Enum"  
-		int TagId FK "NOT NULL"  
-	}
-	eventos {
-		int Id PK "Identity"  
-		nvarchar2 IdTag  "NOT NULL"  
-		nvarchar2 Timestamp  "NOT NULL"  
-		int LedOn  "Boolean convertido para int"  
-		nvarchar2 Problema  "NOT NULL"  
-		int Cor  "0-255"  
-	}
-	tags ||--|| motos : "possui"
+    tags {
+        int Id PK "Identity"  
+        nvarchar2_50 Coordenada "NOT NULL"  
+        number_3 Disponivel "0=Indisponível, 1=Disponível"  
+    }
+    motos {
+        int Id PK "Identity"  
+        nvarchar2_8 Placa "NOT NULL, Max 8 chars"  
+        nvarchar2_17 Chassi "NOT NULL, Max 17 chars"  
+        nvarchar2_500 DescricaoProblema "NOT NULL, Max 500 chars"  
+        int ModeloMoto "NOT NULL, Enum (0-2)"  
+        int CategoriaProblema "NOT NULL, Enum (0-6)"  
+        int TagId FK "NOT NULL"  
+    }
+    eventos_iot {
+        int Id PK "Identity"  
+        nvarchar2 IdTag "NOT NULL"  
+        nvarchar2 Timestamp "NOT NULL"  
+        boolean LedOn "NOT NULL"  
+        nvarchar2 Problema "NOT NULL"  
+        int Cor "0-255"  
+    }
+    tags ||--o{ motos : "possui"
 ```
 
 ### Justificativa da Arquitetura
@@ -479,36 +607,36 @@ erDiagram
 #### **Padrão de Arquitetura Escolhido: Clean Architecture**
 
 O projeto adota a **Clean Architecture**, garantindo separação de responsabilidades, baixo acoplamento e alta testabilidade.
-### Camadas principais
 
-Controllers: Recebem requisições HTTP
+### Camadas Principais
 
-- Services: Lógica de negócio
-- DTOs: Transferência de dados
-- Models: Entidades do domínio
-- Interfaces: Contratos para inversão de dependência
-
-#### **Estrutura das Camadas**
-
-1. **Controllers**: Responsáveis por receber as requisições HTTP e orquestrar as operações
+1. **Controllers**: Recebem requisições HTTP e orquestram as operações
 2. **Services**: Contêm a lógica de negócio e regras específicas do domínio
 3. **DTOs (Data Transfer Objects)**: Objetos para transferência de dados entre camadas
 4. **Models**: Representam as entidades do domínio
 5. **Interfaces**: Definem contratos para inversão de dependência
+6. **Message Broker**: RabbitMQ para processamento assíncrono de eventos IoT
+7. **ML Models**: Modelos de Machine Learning para predição de problemas
 
 #### **Tecnologias Utilizadas**
 
-- **ASP.NET Core**: Framework robusto para APIs REST
-- **Oracle + EF Core**: Persistência de dados com ORM e migrations
-- **AutoMapper**: Conversão automática entre objetos
+- **ASP.NET Core 8.0**: Framework robusto para APIs REST
+- **Oracle + EF Core 9.0**: Persistência de dados com ORM e migrations
+- **RabbitMQ 7.1**: Message broker para processamento assíncrono
+- **ML.NET 3.0**: Framework de Machine Learning
+- **AutoMapper 12.0**: Conversão automática entre objetos
 - **Swagger/OpenAPI**: Documentação interativa da API
+- **Health Checks**: Monitoramento de Oracle DB e Node-RED
 
 #### **Benefícios da Arquitetura Implementada**
 
-- **Escalabilidade**: Estrutura modular e assíncrona
+- **Escalabilidade**: Estrutura modular com processamento assíncrono via RabbitMQ
 - **Manutenibilidade**: Código organizado e fácil de evoluir
-- **Testabilidade**: Camadas desacopladas com suporte a mocks
+- **Testabilidade**: Camadas desacopladas com suporte a mocks e testes de integração
 - **Flexibilidade**: Fácil troca de implementações e integração de novas features
+- **Observabilidade**: Health checks e dashboards de monitoramento
+- **Performance**: Processamento assíncrono de eventos IoT
+- **Inteligência**: Machine Learning integrado para predição de problemas
 
 #### **Padrões de Design Aplicados**
 
@@ -517,10 +645,76 @@ Controllers: Recebem requisições HTTP
 - **Dependency Injection**: Inversão de controle para baixo acoplamento
 - **DTO Pattern**: Controle sobre dados transferidos entre camadas
 - **Result Pattern**: Tratamento consistente de erros e sucessos
+- **HATEOAS**: Hypermedia As The Engine Of Application State
+- **Publisher/Subscriber**: Comunicação assíncrona via RabbitMQ
+- **Background Service**: Processamento de mensagens em background
+
+## Estrutura do Projeto
+
+```
+VroomAPI/
+├── VroomAPI/
+│   ├── Abstractions/          # Result Pattern e Error handling
+│   ├── Authentication/         # API Key authentication
+│   ├── Configuration/          # Configurações (RabbitMQ, etc)
+│   ├── Controllers/            # Endpoints da API
+│   ├── Data/                   # DbContext e configurações do EF Core
+│   ├── DTOs/                   # Data Transfer Objects
+│   ├── Helpers/                # Helpers (HATEOAS, Pagination)
+│   ├── Interface/              # Interfaces de serviços
+│   ├── Mappings/               # AutoMapper profiles
+│   ├── Migrations/             # EF Core migrations
+│   ├── ML/                     # Machine Learning models e lógica
+│   ├── Model/                  # Entidades do domínio
+│   ├── Service/                # Implementação dos serviços
+│   │   └── RabbitMQ/          # Serviços de mensageria
+│   └── Program.cs              # Configuração da aplicação
+│
+└── VroomAPI.Test/              # Projeto de testes
+    └── MotoTest.cs             # Testes de integração
+```
+
+## Recursos Avançados
+
+### 1. Processamento Assíncrono com RabbitMQ
+
+Eventos IoT são processados de forma assíncrona:
+- **Publisher**: Publica eventos na fila
+- **Consumer**: Processa eventos em background
+- **Exchange**: evento_iot_exchange
+- **Queue**: evento_iot_queue
+
+### 2. Machine Learning com ML.NET
+
+- **Treinamento**: `/v2.0/Iot/ml/train`
+- **Predição**: `/v2.0/Iot/ml/predict`
+- **Métricas**: `/v2.0/Iot/ml/metrics`
+- **Status**: `/v2.0/Iot/ml/status`
+
+### 3. Health Checks
+
+Monitoramento em tempo real de:
+- Oracle Database
+- Node-RED API
+- Dashboard visual em `/health-dashboard`
+
+### 4. API Versioning
+
+Suporte a múltiplas versões:
+- **v1.0**: Deprecated
+- **v2.0**: Versão atual
+
+### 5. HATEOAS
+
+Todas as respostas incluem links de navegação hipermídia para facilitar a descoberta de recursos.
 
 ## Autores
 
 - [@Gabriel Marcello](https://github.com/gabrielmarcello) RM556783 2TDSPW
 - [@Guilherme Guimarães](https://github.com/Guimaraes131) RM557074 2TDSA
 - [@Matheus Luna](https://github.com/mlunahodov) RM555547 2TDSA
+
+## Licença
+
+Este projeto foi desenvolvido como parte do Challenge FIAP 2025.
 
