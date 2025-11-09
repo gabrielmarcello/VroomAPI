@@ -7,6 +7,7 @@ using VroomAPI.DTOs;
 using VroomAPI.Model;
 using VroomAPI.Helpers;
 using VroomAPI.Interface;
+using VroomAPI.ML.Models;
 
 namespace VroomAPI.Controllers
 {
@@ -81,7 +82,16 @@ namespace VroomAPI.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Envia um comando para controlar o LED de uma tag IoT
+        /// </summary>
+        /// <param name="command">Comando contendo ID da tag e estado do LED</param>
+        /// <returns>Confirmação do envio do comando</returns>
+        /// <response code="200">Comando enviado com sucesso</response>
+        /// <response code="400">Erro ao enviar comando ou dados inválidos</response>
         [HttpPost("set")]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> SetLed([FromBody] LedCommandDto command)
         {
             var result = await _eventoService.SendCommandAsync(command);

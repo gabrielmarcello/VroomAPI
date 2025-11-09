@@ -89,8 +89,17 @@ namespace VroomAPI.Controllers {
 
             return Ok(response);
         }
+        /// <summary>
+        /// [v1.0 - DEPRECATED] Lista todas as motos sem paginação
+        /// </summary>
+        /// <returns>Lista completa de motos</returns>
+        /// <response code="200">Lista de motos retornada com sucesso</response>
+        /// <response code="400">Erro ao buscar motos</response>
+        /// <remarks>Esta versão está obsoleta. Use a versão 2.0 com paginação.</remarks>
         [HttpGet]
         [MapToApiVersion(1.0)]
+        [ProducesResponseType(typeof(IEnumerable<MotoDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllMotosV1()
         {
             var result = await _motoService.GetAllMotos();
