@@ -9,6 +9,7 @@ Essa é a Vroom, projeto finalista para o Challenge FIAP 2025 do curso de Análi
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
 ![Oracle](https://img.shields.io/badge/Oracle-F80000?style=for-the-badge&logo=oracle&logoColor=white)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
 ## Funcionalidades
 
@@ -439,14 +440,64 @@ Para rodar esse projeto, você vai precisar adicionar as seguintes variáveis de
 
 ## Como Executar
 
-### Pré-requisitos
+### Opção 1: Executar com Docker Compose
+
+Esta é a forma mais rápida e fácil de executar o projeto, pois o Docker Compose configura automaticamente a API e o RabbitMQ.
+
+#### Pré-requisitos
+
+- **Docker Desktop** (Windows/Mac) ou **Docker Engine + Docker Compose** (Linux)
+- **Oracle Database** (deve estar acessível externamente ao container)
+
+#### Passos para Executar
+
+1. **Clone o repositório**
+```bash
+git clone https://github.com/gabrielmarcello/VroomAPI.git
+cd VroomAPI
+```
+
+2. **Configure as variáveis de ambiente no docker-compose.yml**
+   
+   Edite o arquivo `docker-compose.yml` e atualize as seguintes variáveis de ambiente no serviço `vroom-api`:
+
+```yaml
+environment:
+  - ConnectionStrings__OracleConnection=Data Source=SEU_ORACLE_HOST;User Id=SEU_RM;Password=SUA_SENHA
+  - Authentication__ApiKey=minha-api-key 
+```
+
+3. **Inicie os serviços com Docker Compose**
+```bash
+docker-compose up -d
+```
+
+
+4. **Verifique se os containers estão rodando**
+```bash
+docker-compose ps
+```
+
+5. **Acesse a aplicação**
+   - **API Swagger**: http://localhost:5189/swagger
+   - **Health Dashboard**: http://localhost:5189/health-dashboard
+   - **Health Check**: http://localhost:5189/health
+   - **RabbitMQ Management**: http://localhost:15672
+     - Usuário: `guest`
+     - Senha: `guest`
+
+### Opção 2: Executar Localmente (Desenvolvimento)
+
+Para desenvolvimento local sem Docker, com controle total sobre cada componente.
+
+#### Pré-requisitos
 
 - .NET 8.0 SDK
 - Oracle Database
 - RabbitMQ Server
-- Node-RED
+- Node-RED (opcional)
 
-### Instalação
+#### Instalação
 
 1. **Clone o repositório**
 ```bash
@@ -504,6 +555,7 @@ O projeto utiliza:
 - **Swagger/OpenAPI** - Documentação da API
 - **Health Checks** - Monitoramento da aplicação
 - **API Versioning** - Versionamento da API (v1.0 e v2.0)
+- **Docker & Docker Compose** - Containerização e orquestração
 
 ```mermaid
 graph TB
@@ -512,32 +564,35 @@ graph TB
         IoTDevice["Dispositivos IoT"]
     end
     
-    subgraph "Camada de Apresentação"
-        API["Controllers<br/>- TagController<br/>- MotoController<br/>- IotController"]
-        Auth["Middleware<br/>- API Key Auth<br/>- CORS"]
-        Swagger["Swagger/OpenAPI<br/>v1.0 & v2.0"]
-        Health["Health Checks<br/>- Oracle DB<br/>- Node-RED"]
-    end
-    
-    subgraph "Camada de Negócio"
-        Services["Services<br/>- TagService<br/>- MotoService<br/>- IotService<br/>- MLService"]
-        ML["ML.NET<br/>- Training<br/>- Prediction<br/>- Metrics"]
-    end
-    
-    subgraph "Mensageria Assíncrona"
-        RabbitMQ["RabbitMQ"]
-        Publisher["RabbitMQ Publisher"]
-        Consumer["IoT Consumer Service"]
+    subgraph "Docker Environment"
+        subgraph "Container: vroom-api"
+            API["Controllers<br/>- TagController<br/>- MotoController<br/>- IotController"]
+            Auth["Middleware<br/>- API Key Auth<br/>- CORS"]
+            Swagger["Swagger/OpenAPI<br/>v1.0 & v2.0"]
+            Health["Health Checks<br/>- Oracle DB<br/>- Node-RED"]
+            Services["Services<br/>- TagService<br/>- MotoService<br/>- IotService<br/>- MLService"]
+            ML["ML.NET<br/>- Training<br/>- Prediction<br/>- Metrics"]
+            EF["Entity Framework Core<br/>(AppDbContext)"]
+        end
+        
+        subgraph "Container: vroom-rabbitmq"
+            RabbitMQ["RabbitMQ Server<br/>Port 5672"]
+            RabbitMQMgmt["Management Console<br/>Port 15672"]
+            Publisher["RabbitMQ Publisher"]
+            Consumer["IoT Consumer Service"]
+        end
+        
+        Network["Docker Network<br/>vroom-network"]
+        Volume["Docker Volume<br/>rabbitmq_data"]
     end
     
     subgraph "Camada de Dados"
-        EF["Entity Framework Core<br/>(AppDbContext)"]
         Models["Domain Models<br/>- Tag<br/>- Moto<br/>- EventoIot"]
         MLModels["ML Models<br/>- EventoIotData<br/>- ProblemaPrediction<br/>- ModelMetrics"]
     end
     
-    subgraph "Infraestrutura"
-        DB["Oracle Database"]
+    subgraph "Infraestrutura Externa"
+        DB["Oracle Database<br/>(Host Machine)"]
         NodeRed["Node-RED API<br/>(Controle LED)"]
     end
     
@@ -545,8 +600,8 @@ graph TB
         Patterns["Padrões & Helpers<br/>- Result Pattern<br/>- HATEOAS<br/>- Paginação<br/>- AutoMapper<br/>- Versionamento API"]
     end
     
-    Client -->|HTTP Requests| Auth
-    IoTDevice -->|HTTP Requests| Auth
+    Client -->|HTTP :5189| Auth
+    IoTDevice -->|HTTP :5189| Auth
     Auth --> API
     API --> Services
     Services --> ML
@@ -556,9 +611,13 @@ graph TB
     Consumer --> EF
     Services --> EF
     EF --> Models
-    Models --> DB
+    Models -->|Connection String| DB
     ML --> MLModels
-    Services -.->|Comandos LED| NodeRed
+    Services -.->|HTTP| NodeRed
+    
+    RabbitMQ -.-> Volume
+    API -.-> Network
+    RabbitMQ -.-> Network
     
     API -.->|Usa| Patterns
     Services -.->|Usa| Patterns
@@ -573,6 +632,8 @@ graph TB
     style Patterns fill:#607D8B,stroke:#37474F,color:#fff
     style RabbitMQ fill:#FF6600,stroke:#CC5200,color:#fff
     style ML fill:#00BCD4,stroke:#0097A7,color:#fff
+    style Network fill:#2196F3,stroke:#1565C0,color:#fff
+    style Volume fill:#FFC107,stroke:#F57C00,color:#000
 ```
 
 ```mermaid
@@ -627,6 +688,7 @@ O projeto adota a **Clean Architecture**, garantindo separação de responsabili
 - **AutoMapper 12.0**: Conversão automática entre objetos
 - **Swagger/OpenAPI**: Documentação interativa da API
 - **Health Checks**: Monitoramento de Oracle DB e Node-RED
+- **Docker & Docker Compose**: Containerização e orquestração de serviços
 
 #### **Benefícios da Arquitetura Implementada**
 
@@ -637,6 +699,8 @@ O projeto adota a **Clean Architecture**, garantindo separação de responsabili
 - **Observabilidade**: Health checks e dashboards de monitoramento
 - **Performance**: Processamento assíncrono de eventos IoT
 - **Inteligência**: Machine Learning integrado para predição de problemas
+- **Portabilidade**: Docker garante execução consistente em qualquer ambiente
+- **Facilidade de Deploy**: Docker Compose simplifica a implantação em produção
 
 #### **Padrões de Design Aplicados**
 
@@ -670,51 +734,16 @@ VroomAPI/
 │   │   └── RabbitMQ/          # Serviços de mensageria
 │   └── Program.cs              # Configuração da aplicação
 │
-└── VroomAPI.Test/              # Projeto de testes
-    └── MotoTest.cs             # Testes de integração
+├── VroomAPI.Test/              # Projeto de testes
+│   └── MotoTest.cs             # Testes de integração
+│
+├── Dockerfile                  # Definição da imagem Docker da API
+├── docker-compose.yml          # Orquestração de containers (API + RabbitMQ)
+├── .dockerignore               # Arquivos ignorados pelo Docker build
+└── README.md                   # Documentação do projeto
 ```
-
-## Recursos Avançados
-
-### 1. Processamento Assíncrono com RabbitMQ
-
-Eventos IoT são processados de forma assíncrona:
-- **Publisher**: Publica eventos na fila
-- **Consumer**: Processa eventos em background
-- **Exchange**: evento_iot_exchange
-- **Queue**: evento_iot_queue
-
-### 2. Machine Learning com ML.NET
-
-- **Treinamento**: `/v2.0/Iot/ml/train`
-- **Predição**: `/v2.0/Iot/ml/predict`
-- **Métricas**: `/v2.0/Iot/ml/metrics`
-- **Status**: `/v2.0/Iot/ml/status`
-
-### 3. Health Checks
-
-Monitoramento em tempo real de:
-- Oracle Database
-- Node-RED API
-- Dashboard visual em `/health-dashboard`
-
-### 4. API Versioning
-
-Suporte a múltiplas versões:
-- **v1.0**: Deprecated
-- **v2.0**: Versão atual
-
-### 5. HATEOAS
-
-Todas as respostas incluem links de navegação hipermídia para facilitar a descoberta de recursos.
-
 ## Autores
 
 - [@Gabriel Marcello](https://github.com/gabrielmarcello) RM556783 2TDSPW
 - [@Guilherme Guimarães](https://github.com/Guimaraes131) RM557074 2TDSA
 - [@Matheus Luna](https://github.com/mlunahodov) RM555547 2TDSA
-
-## Licença
-
-Este projeto foi desenvolvido como parte do Challenge FIAP 2025.
-
