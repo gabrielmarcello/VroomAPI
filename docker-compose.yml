@@ -1,0 +1,53 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: vroom-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - vroom-network
+
+  vroom-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vroom-api
+    ports:
+      - "5189:5189"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=5189
+      - ConnectionStrings__OracleConnection=Data Source=;User Id=;Password=
+      - Authentication__ApiKey=minha-api-key
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - RabbitMQ__EventoIotQueueName=evento_iot_queue
+      - RabbitMQ__EventoIotExchangeName=evento_iot_exchange
+      - RabbitMQ__EventoIotRoutingKey=evento_iot
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - vroom-network
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+    driver: local
+
+networks:
+  vroom-network:
+    driver: bridge
