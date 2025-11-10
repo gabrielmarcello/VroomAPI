@@ -32,7 +32,7 @@ http://localhost:5189/v2.0
 ## Autenticação
 Todas as requisições requerem autenticação via API Key no header:
 ```
-X-Api-Key: sua-api-key-aqui
+X-Api-Key: minha-api-key
 ```
 
 ## IoT
